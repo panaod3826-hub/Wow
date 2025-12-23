@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>โรงเรือนแม่พันธุ์</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    /* 🎨 THEME */
+    :root { --primary-color: #0f766e; --bg-gradient-start: #f8fafc; --bg-gradient-end: #e2e8f0; --text-main: #1e293b; --text-sub: #64748b; --col-wait: #10b981; --col-preg: #3b82f6; --col-lac: #ec4899; --col-rest: #f59e0b; --col-alert: #ef4444; --col-all: #475569; }
+    body { font-family: 'Sarabun', sans-serif; background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 90px; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+    
+    /* HEADER */
+    .dashboard-header { position: sticky; top: 0; z-index: 100; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); padding: 15px 20px; border-radius: 0 0 20px 20px; }
+    .app-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .title-group { display: flex; align-items: center; gap: 10px; }
+    .app-title h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--primary-color); }
+    .header-right { text-align: right; }
+    .clock-display { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+    .date-display { font-size: 0.75rem; color: var(--text-sub); margin-top: -2px; }
+    .home-btn { text-decoration: none; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; background: rgba(0,0,0,0.05); border-radius: 50%; color: var(--primary-color); }
+
+    /* STATS */
+    .stats-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+    .stat-mini-card { background: #fff; padding: 10px 5px; border-radius: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .stat-mini-val { font-size: 1.2rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .stat-mini-label { font-size: 0.65rem; color: var(--text-sub); font-weight: 600; }
+
+    /* FILTER */
+    .search-container { margin-bottom: 10px; }
+    .search-input { width: 100%; padding: 10px 15px; border-radius: 30px; border: 1px solid #e2e8f0; font-family: 'Sarabun'; font-size: 0.95rem; outline: none; background-color: #fff; box-sizing: border-box; }
+    .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+    .filter-btn { flex: 0 0 auto; padding: 6px 12px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; color: var(--text-sub); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+    .filter-btn.active { color: white; border-color: transparent; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .btn-all.active { background-color: var(--col-all); } .btn-wait.active { background-color: var(--col-wait); } .btn-preg.active { background-color: var(--col-preg); } .btn-lac.active { background-color: var(--col-lac); } .btn-rest.active { background-color: var(--col-rest); } .btn-alert.active { background-color: var(--col-alert); }
+
+    /* LIST */
+    .container { max-width: 800px; margin: 0 auto; padding: 10px 15px; }
+    .sow-list { list-style: none; padding: 0; margin: 0; }
+    .sow-item { background: white; border-radius: 16px; margin-bottom: 10px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 15px; transition: transform 0.1s; cursor: pointer; }
+    .sow-item:active { transform: scale(0.98); }
+    .sow-img-thumb { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .sow-info { flex: 1; }
+    .sow-tag { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+    .sow-breed { font-size: 0.8rem; color: var(--text-sub); }
+    .status-badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block; margin-top: 4px; }
+    .status-wait { background: #d1fae5; color: #065f46; } .status-preg { background: #dbeafe; color: #1e40af; } .status-lac { background: #fce7f3; color: #9d174d; } .status-rest { background: #ffedd5; color: #9a3412; } .status-alert { background: #fee2e2; color: #991b1b; }
+    .sow-next { font-size: 0.75rem; color: var(--text-sub); text-align: right; min-width: 80px; }
+    .sow-next strong { display: block; font-size: 0.85rem; color: var(--primary-color); margin-bottom: 2px; }
+
+    /* ACTION BAR */
+    .action-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 500px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 8px; border-radius: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.15); display: flex; gap: 8px; z-index: 200; border: 1px solid rgba(255,255,255,0.5); }
+    .action-btn { flex: 1; border: none; padding: 8px 0; border-radius: 14px; color: white; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; gap: 2px; cursor: pointer; }
+    .action-btn i { font-size: 1.4rem; }
+    .btn-event { background: linear-gradient(135deg, #3b82f6, #2563eb); } .btn-farrow { background: linear-gradient(135deg, #f97316, #ea580c); } .btn-wean { background: linear-gradient(135deg, #8b5cf6, #7c3aed); } .btn-register { background: linear-gradient(135deg, #10b981, #059669); }
+
+    /* CHAT */
+    .chat-fab { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; z-index: 900; cursor: pointer; transition: transform 0.2s; }
+    .chat-fab:active { transform: scale(0.9); }
+    .chat-window { display: none; position: fixed; bottom: 165px; right: 20px; width: 300px; height: 400px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 901; flex-direction: column; border: 1px solid #e2e8f0; overflow: hidden; animation: slideUp 0.3s; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .chat-header { background: #4f46e5; color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+    .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f1f5f9; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; }
+    .chat-footer { padding: 10px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 5px; }
+    .chat-input { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; font-family: 'Sarabun'; }
+    .mic-btn { width: 35px; height: 35px; border-radius: 50%; background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center; }
+    .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; line-height: 1.4; } .msg-user { align-self: flex-end; background: #4f46e5; color: white; border-bottom-right-radius: 2px; } .msg-bot { align-self: flex-start; background: white; color: #1e293b; border-bottom-left-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+    /* MODAL */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
+    .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 24px; width: 85%; max-width: 400px; max-height: 80vh; overflow-y: auto; position: relative; animation: popIn 0.2s; }
+    @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .close { position: absolute; right: 20px; top: 15px; font-size: 24px; color: #cbd5e1; cursor: pointer; }
+    .form-group { margin-bottom: 15px; } label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-sub); font-size: 0.9rem; }
+    input, select { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; box-sizing: border-box; font-family: 'Sarabun'; font-size: 1rem; color: var(--text-main); }
+    .submit-btn { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+    /* SOW CARD POPUP */
+    .pc-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 10px; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: block; }
+    .pc-tag { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin: 0; text-align: center; }
+    .pc-breed { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 15px; text-align: center; }
+    .pc-stats { display: flex; justify-content: space-around; margin: 20px 0; background: #f8fafc; padding: 15px; border-radius: 16px; }
+    .pc-stat-item { text-align: center; } .pc-stat-item small { display: block; color: var(--text-sub); font-size: 0.75rem; } .pc-stat-item strong { font-size: 1.2rem; color: var(--primary-color); }
+    .hist-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+    .hist-date { color: var(--text-sub); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-header">
+    <div class="app-title">
+      <div class="title-group">
+        <? var url = getAppUrl(); ?>
+        <a href="<?= url ?>" class="home-btn"><i class="material-icons">home</i></a>
+        <h1><span id="liveDot" style="display:none; color:red;">●</span> โรงเรือนแม่พันธุ์</h1>
+      </div>
+      <div class="header-right">
+        <div id="clockTime" class="clock-display">--:--</div>
+        <div id="clockDate" class="date-display">--/--/----</div>
+      </div>
+    </div>
+    
+    <div class="stats-overview">
+       <div class="stat-mini-card" onclick="setFilter('wait', this)"><div class="stat-mini-val" id="val-wait" style="color:var(--col-wait)">-</div><div class="stat-mini-label">รอผสม</div></div>
+       <div class="stat-mini-card" onclick="setFilter('preg', this)"><div class="stat-mini-val" id="val-preg" style="color:var(--col-preg)">-</div><div class="stat-mini-label">อุ้มท้อง</div></div>
+       <div class="stat-mini-card" onclick="setFilter('lac', this)"><div class="stat-mini-val" id="val-lac" style="color:var(--col-lac)">-</div><div class="stat-mini-label">เลี้ยงลูก</div></div>
+       <div class="stat-mini-card" onclick="setFilter('all', this)"><div class="stat-mini-val" id="val-total" style="color:var(--col-all)">-</div><div class="stat-mini-label">ทั้งหมด</div></div>
+    </div>
+
+    <div class="search-container"><input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาเบอร์หู..." onkeyup="applyFilters()"></div>
+    <div class="filter-bar">
+      <button class="filter-btn btn-all active" onclick="setFilter('all', this)">🏠 ทั้งหมด</button>
+      <button class="filter-btn btn-wait" onclick="setFilter('wait', this)">💕 รอผสม</button>
+      <button class="filter-btn btn-preg" onclick="setFilter('preg', this)">🤰 อุ้มท้อง</button>
+      <button class="filter-btn btn-lac" onclick="setFilter('lac', this)">🍼 เลี้ยงลูก</button>
+      <button class="filter-btn btn-alert" onclick="setFilter('alert', this)">⚠️ แจ้งเตือน</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="loading" style="text-align:center; padding:40px; color:var(--text-sub);"><div class="spinner" style="width:30px;height:30px;border:3px solid #e2e8f0;border-top-color:var(--primary-color);border-radius:50%;animation:spin 1s infinite linear;margin:0 auto 10px;"></div>กำลังโหลดข้อมูล...</div>
+    <ul id="sowList" class="sow-list" style="display:none;"></ul>
+    <div id="noDataMessage" style="display:none; text-align:center; padding:30px; color:#94a3b8;">ไม่พบข้อมูล</div>
+  </div>
+
+  <div class="action-bar">
+    <button class="action-btn btn-event" onclick="openModal('eventModal')"><i class="material-icons">event</i><span>เหตุการณ์</span></button>
+    <button class="action-btn btn-farrow" onclick="openModal('farrowModal')"><i class="material-icons">child_friendly</i><span>คลอด</span></button>
+    <button class="action-btn btn-wean" onclick="prepareWeaningModal()"><i class="material-icons">call_split</i><span>หย่านม</span></button>
+    <button class="action-btn btn-register" onclick="openModal('registerModal')"><i class="material-icons">add_circle</i><span>ลงทะเบียน</span></button>
+  </div>
+
+  <div class="chat-fab" onclick="toggleChat()"><i class="material-icons">smart_toy</i></div>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header"><div>🤖 อ๊อด แอด (AI)</div><i class="material-icons" style="cursor:pointer;" onclick="toggleChat()">close</i></div>
+    <div class="chat-body" id="chatBody"><div class="msg msg-bot">สวัสดีครับ! ถามข้อมูลฟาร์มได้เลยครับ 🐷</div></div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" class="chat-input" placeholder="พิมพ์ข้อความ..." onkeypress="if(event.key==='Enter') sendMessage()">
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()"><i class="material-icons">mic</i></button>
+      <button class="submit-btn" style="width:40px; margin:0; padding:0;" onclick="sendMessage()"><i class="material-icons">send</i></button>
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('detailModal')">&times;</span><div id="sowCardContent">Loading...</div></div></div>
+  <div id="helpModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('helpModal')">&times;</span><h3>📖 คู่มือ</h3><p>ระบบจัดการแม่พันธุ์ครบวงจร...</p></div></div>
+
+  <div id="registerModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('registerModal')">&times;</span><div class="modal-header" style="text-align:center;font-weight:bold;margin-bottom:20px;color:var(--primary-color);">➕ ลงทะเบียนใหม่</div><form id="registerForm" onsubmit="handleRegister(event)"><div class="form-group"><label>เบอร์หู *</label><input type="text" name="earTag" required></div><div class="form-group"><label>ชื่อแม่พันธุ์</label><input type="text" name="sowName"></div><div class="form-group"><label>สายพันธุ์</label><input type="text" name="breed"></div><div class="form-group"><label>แหล่งที่มา</label><select name="source"><option value="ผลิตเอง">ผลิตเอง</option><option value="ซื้อเข้า">ซื้อเข้า</option></select></div><div class="form-group"><label>รูปภาพ</label><input type="file" name="imageFile" accept="image/*"></div><button type="submit" class="submit-btn">บันทึกข้อมูล</button></form></div></div>
+
+  <div id="eventModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('eventModal')">&times;</span><div class="modal-header" style="text-align:center;font-weight:bold;margin-bottom:20px;color:#3b82f6;">📅 บันทึกเหตุการณ์</div><form id="eventForm" onsubmit="handleEvent(event)"><div class="form-group"><label>เลือกแม่สุกร *</label><select id="eventSowSelect" name="sowId" required></select></div><div class="form-group"><label>ประเภทเหตุการณ์ *</label><select name="eventType" id="eventTypeSelect" required onchange="toggleEventFields()"><option value="ผสมพันธุ์">💕 ผสมพันธุ์</option><option value="ตรวจท้อง (พบ)">✅ ตรวจท้อง (พบ)</option><option value="ตรวจท้อง (ไม่พบ)">❌ ตรวจท้อง (ไม่พบ)</option><option value="แท้ง">🩸 แท้ง</option><option value="กลับสัด">💔 กลับสัด</option><option value="คัดทิ้ง">🚫 คัดทิ้ง</option><option value="หมายเหตุ">📝 อื่นๆ</option></select></div><div class="form-group"><label>วันที่ *</label><input type="date" name="eventDate" required></div><div class="form-group" id="sireDiv" style="display:none;"><label>พ่อพันธุ์</label><select name="sireId" id="sireSelect"><option value="">- เลือกพ่อพันธุ์ -</option></select></div><button type="submit" class="submit-btn">บันทึก</button></form></div></div>
+
+  <div id="farrowModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('farrowModal')">&times;</span><div class="modal-header" style="text-align:center;font-weight:bold;margin-bottom:20px;color:#f97316;">🐷 บันทึกการคลอด</div><form id="farrowForm" onsubmit="handleFarrowing(event)"><div class="form-group"><label>แม่สุกร *</label><select id="farrowSowSelect" name="sowId" required onchange="autoFillParity(this.value)"></select></div><div class="form-group"><label>ครอกที่ *</label><input type="number" name="parity" id="farrowParity" required></div><div class="form-group"><label>วันที่คลอด *</label><input type="date" name="farrowDate" required></div><div style="display:flex;gap:10px;"><div class="form-group"><label>มีชีวิต</label><input type="number" name="bornAlive" value="0"></div><div class="form-group"><label>ตาย</label><input type="number" name="stillborn" value="0"></div><div class="form-group"><label>มัมมี่</label><input type="number" name="mummified" value="0"></div></div><div class="form-group"><label>นน.รวม (กก.)</label><input type="number" step="0.01" name="totalBirthWeight"></div><button type="submit" class="submit-btn">บันทึก</button></form></div></div>
+
+  <div id="weaningModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal('weaningModal')">&times;</span><div class="modal-header" style="text-align:center;font-weight:bold;margin-bottom:20px;color:#8b5cf6;">👶 บันทึกหย่านม</div><form id="weanForm" onsubmit="handleWeaning(event)"><div class="form-group"><label>เลือกแม่สุกร (ที่เลี้ยงลูก) *</label><select id="weanLitterSelect" name="farrowId" required></select></div><div class="form-group"><label>วันที่หย่านม *</label><input type="date" name="weanDate" required></div><div class="form-group"><label>จำนวนลูกหย่านม</label><input type="number" name="pigsWeaned" required></div><div class="form-group"><label>นน.รวม (กก.)</label><input type="number" step="0.01" name="totalWeanWeight"></div><button type="submit" class="submit-btn">บันทึก</button></form></div></div>
+
+  <script>
+    // --- APP STATE ---
+    let allSowsData = []; let currentCategory = 'all';
+
+    window.onload = function() {
+      loadDashboardStats();
+      loadSowData();
+      loadDropdownData();
+      startClock();
+      document.querySelectorAll('input[type="date"]').forEach(el => el.value = new Date().toISOString().split('T')[0]);
+    };
+
+    function startClock() {
+      const update = () => {
+        const now = new Date();
+        document.getElementById('clockTime').innerText = now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+        document.getElementById('clockDate').innerText = now.toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'});
+      };
+      setInterval(update, 1000); update();
+    }
+
+    // --- DATA LOADING (เรียก sow_...) ---
+    function loadDashboardStats() {
+      google.script.run.withSuccessHandler(data => {
+        if(data) {
+          document.getElementById('val-wait').innerText = data.status_wait || 0;
+          document.getElementById('val-preg').innerText = data.status_preg || 0;
+          document.getElementById('val-lac').innerText = data.status_lac || 0;
+          document.getElementById('val-total').innerText = data.total_sows || 0;
+        }
+      }).sow_getDashboardData();
+    }
+
+    function loadSowData() {
+      google.script.run.withSuccessHandler(data => {
+        allSowsData = data;
+        applyFilters();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('sowList').style.display = 'block';
+        populateSowSelects(data);
+      }).sow_getSowRegister();
+    }
+
+    function loadDropdownData(){
+      google.script.run.withSuccessHandler(list => {
+        const s = document.getElementById('sireSelect');
+        s.innerHTML = '<option value="">- เลือกพ่อพันธุ์ -</option>';
+        list.forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.text = item.name; s.add(opt); });
+      }).sow_getSireList();
+    }
+
+    // --- RENDER ---
+    function applyFilters() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allSowsData.filter(sow => {
+        const earTag = (sow.earTag || "").toLowerCase();
+        const matchSearch = earTag.includes(query);
+        let matchCategory = false;
+        const status = sow.statusComputed || "";
+        
+        if (currentCategory === 'all') matchCategory = true;
+        else if (currentCategory === 'wait') matchCategory = status.includes("ผสม") || status.includes("กลับสัด") || status.includes("พร้อม");
+        else if (currentCategory === 'preg') matchCategory = status.includes("อุ้มท้อง") || status.includes("รอตรวจ");
+        else if (currentCategory === 'lac') matchCategory = status.includes("เลี้ยงลูก");
+        else if (currentCategory === 'rest') matchCategory = status.includes("พักฟื้น");
+        else if (currentCategory === 'alert') matchCategory = status.includes("เลยกำหนด") || status.includes("คัดทิ้ง");
+        return matchSearch && matchCategory;
+      });
+      renderList(filtered);
+    }
+
+    function setFilter(category, btnElement) {
+      currentCategory = category;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      applyFilters();
+    }
+
+    function renderList(data) {
+      const list = document.getElementById('sowList');
+      list.innerHTML = '';
+      if (data.length === 0) { document.getElementById('noDataMessage').style.display = 'block'; return; }
+      document.getElementById('noDataMessage').style.display = 'none';
+
+      data.forEach(sow => {
+        const li = document.createElement('li');
+        li.className = 'sow-item';
+        li.onclick = () => showSowCard(sow.sowId);
+        
+        const imgHtml = sow.imageUrl ? `<img src="${sow.imageUrl}" class="sow-img-thumb">` : `<div class="sow-img-thumb" style="display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:24px;">🐷</div>`;
+        
+        let badgeClass = "status-wait";
+        const s = sow.statusComputed || "";
+        if(s.includes("อุ้มท้อง")) badgeClass = "status-preg";
+        else if(s.includes("เลี้ยงลูก")) badgeClass = "status-lac";
+        else if(s.includes("พักฟื้น")) badgeClass = "status-rest";
+        else if(s.includes("คัดทิ้ง")) badgeClass = "status-alert";
+
+        let daysStr = "", nextDateStr = "-";
+        if(sow.nextActionDate) {
+            const d = new Date(sow.nextActionDate);
+            nextDateStr = d.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+            const diff = Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
+            if(diff > 0) daysStr = `(อีก ${diff} วัน)`; else if(diff == 0) daysStr = `(วันนี้)`; else daysStr = `(เลย ${Math.abs(diff)} วัน)`;
+        }
+
+        li.innerHTML = `
+          ${imgHtml}
+          <div class="sow-info">
+            <div class="sow-tag">${sow.earTag}</div>
+            <div class="sow-breed">${sow.breed || '-'}</div>
+            <span class="status-badge ${badgeClass}">${sow.statusComputed}</span>
+          </div>
+          <div class="sow-next">
+             <strong>${sow.nextAction || '-'}</strong>
+             <div>${nextDateStr}</div>
+             <div style="font-size:0.65rem;color:${daysStr.includes('เลย')?'red':'gray'}">${daysStr}</div>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // --- POPUP CARD ---
+    function showSowCard(sowId) {
+      openModal('detailModal');
+      document.getElementById('sowCardContent').innerHTML = '<div style="text-align:center;padding:20px;"><div class="spinner"></div>กำลังดึงประวัติ...</div>';
+      
+      google.script.run.withSuccessHandler(data => {
+        if(!data) { document.getElementById('sowCardContent').innerHTML = "ไม่พบข้อมูล"; return; }
+        const p = data.profile; const st = data.stats;
+        let imgHtml = p.img ? `<img src="${p.img}" class="pc-img">` : `<div class="pc-img" style="background:#eee;display:flex;align-items:center;justify-content:center;font-size:3rem;color:#ccc;">🐷</div>`;
+        
+        let html = `
+          <div class="profile-card">
+            ${imgHtml}
+            <h2 class="pc-tag">${p.earTag}</h2>
+            <div class="pc-breed">${p.breed} | ครอกที่ ${p.parity}</div>
+            <div style="background:#e0f2fe;color:#0369a1;padding:8px;border-radius:10px;margin:10px 0;font-weight:600;">${p.status}</div>
+            <div class="pc-stats">
+               <div class="pc-stat-item"><strong>${st.avgBornAlive}</strong><small>ลูกเฉลี่ย</small></div>
+               <div class="pc-stat-item"><strong>${st.totalLitters}</strong><small>ครอกทั้งหมด</small></div>
+               <div class="pc-stat-item"><strong style="color:${data.status.count.includes('เลย')?'red':'green'}">${data.status.count}</strong><small>${data.status.action}</small></div>
+            </div>
+            <h4 style="text-align:left;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:5px;margin-bottom:10px;">ประวัติล่าสุด</h4>
+            <div class="history-list">
+        `;
+        
+        if(data.history.length === 0) html += `<div style="text-align:center;color:#ccc;">ไม่มีประวัติ</div>`;
+        else {
+            data.history.forEach(log => {
+               html += `<div class="hist-row"><div><div style="font-weight:bold;">${log.event}</div><div style="font-size:0.8rem;color:#666;">${log.detail}</div></div><div class="hist-date">${log.date}</div></div>`;
+            });
+        }
+        html += `</div></div>`;
+        document.getElementById('sowCardContent').innerHTML = html;
+      }).sow_getSowCardData(sowId);
+    }
+
+    // --- FORM ACTIONS ---
+    function toggleEventFields() {
+        const type = document.getElementById('eventTypeSelect').value;
+        document.getElementById('sireDiv').style.display = (type === 'ผสมพันธุ์') ? 'block' : 'none';
+    }
+    function populateSowSelects(sowList) {
+        const els = ['eventSowSelect', 'farrowSowSelect'];
+        els.forEach(id => {
+            const el = document.getElementById(id);
+            el.innerHTML = '<option value="">- เลือกแม่สุกร -</option>';
+            sowList.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.sowId;
+                opt.text = `${s.earTag} (${s.statusComputed})`;
+                opt.dataset.parity = s.parity;
+                el.add(opt);
+            });
+        });
+    }
+    function autoFillParity(sowId) {
+        const sel = document.getElementById('farrowSowSelect');
+        const opt = sel.options[sel.selectedIndex];
+        if(opt && opt.dataset.parity) document.getElementById('farrowParity').value = parseInt(opt.dataset.parity) + 1;
+    }
+    function checkSowParityForEvent(sowId) { /* Optional Logic */ }
+    function prepareWeaningModal() {
+        const sel = document.getElementById('weanLitterSelect');
+        sel.innerHTML = '<option>กำลังโหลด...</option>';
+        openModal('weaningModal');
+        google.script.run.withSuccessHandler(litters => {
+            sel.innerHTML = '<option value="">- เลือกแม่สุกรเลี้ยงลูก -</option>';
+            if(litters.length === 0) sel.innerHTML += '<option disabled>ไม่มีแม่สุกรเลี้ยงลูก</option>';
+            litters.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.farrowId;
+                opt.text = `${l.earTag} (ครอก ${l.parity}) - คลอด ${l.farrowDate}`;
+                sel.add(opt);
+            });
+        }).sow_getLittersForWeaning();
+    }
+    function handleRegister(e) { e.preventDefault(); submitForm(e.target, 'sow_addSowRegister', 'registerModal', true); }
+    function handleEvent(e) { e.preventDefault(); submitForm(e.target, 'sow_addBreedingEvent', 'eventModal'); }
+    function handleFarrowing(e) { e.preventDefault(); submitForm(e.target, 'sow_addFarrowingRecord', 'farrowModal'); }
+    function handleWeaning(e) { e.preventDefault(); submitForm(e.target, 'sow_addWeaningRecord', 'weaningModal'); }
+    function submitForm(form, funcName, modalId, isFile=false) {
+        Swal.fire({title:'กำลังบันทึก...', didOpen:()=>{Swal.showLoading()}});
+        const run = (data, file=null) => {
+            google.script.run.withSuccessHandler(res => {
+                if(res.includes("❌")) Swal.fire('ผิดพลาด', res, 'error');
+                else Swal.fire('สำเร็จ', res, 'success').then(() => { closeModal(modalId); form.reset(); loadSowData(); loadDashboardStats(); });
+            }).withFailureHandler(err => Swal.fire('Error', err.message, 'error'))[funcName](data, file);
+        };
+        if(isFile) {
+            const file = form.imageFile.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const fileData = { fileName: file.name, mimeType: file.type, data: e.target.result };
+                const obj = { earTag: form.earTag.value, sowName: form.sowName.value, breed: form.breed.value, source: form.source.value };
+                run(obj, fileData);
+            };
+            if(file) reader.readAsDataURL(file);
+            else { const obj = { earTag: form.earTag.value, sowName: form.sowName.value, breed: form.breed.value, source: form.source.value }; run(obj); }
+        } else {
+            const fd = new FormData(form); const obj = {}; fd.forEach((v,k) => obj[k] = v);
+            run(obj);
+        }
+    }
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    window.onclick = function(event) { if (event.target.classList.contains('modal')) event.target.style.display = "none"; }
+    // CHAT
+    function toggleChat() { const w = document.getElementById('chatWindow'); w.style.display = (w.style.display==='flex')?'none':'flex'; }
+    function sendMessage() {
+        const txt = document.getElementById('chatInput').value.trim(); if(!txt) return;
+        const b = document.getElementById('chatBody');
+        b.innerHTML += `<div class="msg msg-user">${txt}</div>`; document.getElementById('chatInput').value='';
+        const loadId = 'l'+Date.now(); b.innerHTML += `<div class="msg msg-bot" id="${loadId}">...</div>`; b.scrollTop=9999;
+        google.script.run.withSuccessHandler(ans => {
+            document.getElementById(loadId).remove(); b.innerHTML += `<div class="msg msg-bot">${ans}</div>`; b.scrollTop=9999; speak(ans);
+        }).sow_askOddAdd(txt);
+    }
+    function speak(t) { if('speechSynthesis' in window) { const u=new SpeechSynthesisUtterance(t); u.lang='th-TH'; window.speechSynthesis.speak(u); } }
+  </script>
+</body>
+</html>
