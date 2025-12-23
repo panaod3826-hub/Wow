@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>โรงเรือนขุน - นิพนธ์ฟาร์ม</title>
+<base target="_top"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&family=Chivo+Mono:wght@400;600&family=Material+Icons&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+/* (CSS Original Theme) */
+:root { --bg-dark: #121212; --card-dark: #1e293b; --text-main: #f1f5f9; --text-label: #38bdf8; --text-muted: #64748b; --primary-accent: #0d9488; --neon-green: #10b981; --neon-blue: #3b82f6; --neon-orange: #f59e0b;
+--neon-red: #ef4444; }
+body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Sarabun', sans-serif; padding-bottom: 80px; }
+.font-digital { font-family: 'Chivo Mono', monospace; letter-spacing: -0.5px; }
+.main-header { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); padding: 20px 0 40px 0; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: -30px; position: relative; z-index: 10; border-bottom: 1px solid #334155; }
+.app-title { font-weight: 800; color: var(--neon-green); text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+.btn-menu-toggle { color: white; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); }
+.clock-card { background: #0f172a; border: 1px solid #334155; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+.stat-card { background: var(--card-dark); border-radius: 12px; padding: 15px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-top: 3px solid transparent; height: 100%;
+color: white; }
+.stat-card .value { font-size: 1.8rem; font-weight: 700; font-family: 'Chivo Mono', monospace; }
+.stat-card .label { font-size: 0.85rem; color: #94a3b8; }
+.border-top-small { border-top-color: var(--neon-orange); } .border-top-junior { border-top-color: var(--neon-blue); } .border-top-fatten { border-top-color: var(--neon-green); }
+.stat-total-box { background: #0f172a; border: 1px solid var(--primary-accent); box-shadow: 0 0 10px rgba(13, 148, 136, 0.3); }
+.section-header { background-color: var(--card-dark); color: var(--neon-green); border-left: 4px solid var(--neon-green); border-radius: 4px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.pen-card { background: var(--card-dark); border: 1px solid #334155; border-radius: 12px; overflow: hidden; transition: transform 0.2s; }
+.pen-card:active { transform: scale(0.98); background: #0f172a; }
+.pen-card-header { background: #0f172a; border-bottom: 1px solid #334155; padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+color: #e2e8f0; }
+.status-bar-left { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.bg-status-ว่าง { background-color: #64748b; } .bg-status-เล็ก { background-color: var(--neon-orange); } .bg-status-รุ่น { background-color: var(--neon-blue);
+} .bg-status-ขุน { background-color: var(--neon-green); }
+.pen-card-body { padding: 12px; font-size: 0.9rem; position: relative; padding-left: 16px; }
+.info-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #334155; padding-bottom: 4px; margin-bottom: 4px; color: #94a3b8; }
+.info-val { color: white; font-weight: 500; } .info-val-digital { font-family: 'Chivo Mono', monospace; font-weight: 600; color: white; }
+.progress-dark { background-color: #334155; height: 6px; border-radius: 3px; margin-top: 5px; }
+.btn-float-refresh { background: var(--neon-green); color: #000; border: none; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); position: fixed; bottom: 20px;
+right: 20px; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background-color: var(--card-dark); border: 1px solid #475569; color: white; }
+.modal-header { border-bottom: 1px solid #334155; } .modal-footer { border-top: 1px solid #334155; }
+.modal-body label { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+.label-highlight { color: var(--text-label); } .label-warning { color: var(--neon-orange) !important; }
+.form-control, .form-select { background-color: #0f172a; border: 1px solid #475569; color: white; }
+.form-control::placeholder { color: var(--text-muted); opacity: 0.7; font-size: 0.9rem; }
+.form-control:focus, .form-select:focus { background-color: #0f172a; color: white; border-color: var(--neon-green); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }
+.input-group-text { background-color: #334155; color: #e2e8f0; border-color: #475569; }
+.btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+div:where(.swal2-container) div:where(.swal2-popup) { background: var(--card-dark) !important; color: #e2e8f0 !important; }
+.offcanvas { background-color: var(--card-dark); color: white; }
+.list-group-item { background-color: transparent; color: #e2e8f0; border-color: #334155; }
+.list-group-item:hover { background-color: #334155; color: white; }
+</style>
+</head>
+<body>
+
+<div id="dashboard-view">
+<header class="main-header">
+<div class="container text-center">
+
+<a href="<?= appUrl ?>" class="btn btn-menu-toggle position-absolute start-0 top-0 ms-3 mt-3 rounded-circle shadow-sm" style="width:40px;height:40px; display:flex; align-items:center; justify-content:center; text-decoration:none;"><i class="material-icons">home</i></a>
+
+<button class="btn btn-menu-toggle position-absolute end-0 top-0 me-3 mt-3 rounded-circle shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideMenu" style="width:40px;height:40px;"><i class="material-icons">menu</i></button>
+<h1 class="app-title">โรงเรือนขุน</h1>
+<p class="text-white-50 small mb-0">System v4.5 (Fixed)</p>
+</div>
+</header>
+
+<div class="container text-center mt-4">
+<div class="card clock-card p-2 rounded-4 mb-3">
+<h1 class="m-0 fw-bold font-digital text-white" id="realtime-clock-time">00:00:00</h1>
+<small class="text-info fw-bold" style="font-size: 0.95rem; letter-spacing: 0.5px;" id="realtime-clock-date">Loading...</small>
+</div>
+</div>
+
+<main class="container py-2">
+<div id="alert-box-container" class="mb-3"></div>
+<div class="row text-center mb-4 g-2">
+<div class="col-4"> <div class="stat-card border-top-small"> <div class="value text-warning" id="stat-small-pigs">0</div> <div class="label">เล็ก</div> </div> </div>
+<div class="col-4"> <div class="stat-card border-top-junior"> <div class="value text-info" id="stat-junior-pigs">0</div> <div class="label">รุ่น</div> </div> </div>
+<div class="col-4"> <div class="stat-card border-top-fatten"> <div class="value text-success" id="stat-fatten-pigs">0</div> <div class="label">ขุน</div> </div> </div>
+<div class="col-12 mt-2">
+<div class="stat-total-box rounded-4 p-3 d-flex justify-content-between px-4 align-items-center">
+<span class="text-light small fw-bold">ทั้งหมด</span>
+<span class="fw-bold fs-2 font-digital text-white" id="stat-total-pigs">0</span>
+<span class="text-light small fw-bold">ตัว</span>
+</div>
+</div>
+</div>
+
+<div class="section-header mb-3 p-2"><i class="material-icons me-2 align-middle">grid_view</i> สถานะคอกเลี้ยง</div>
+<div id="pen-grid" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+<div class="col-12 text-center py-5"><div class="spinner-border text-success"></div><p class="mt-2 text-white-50">กำลังโหลดข้อมูล...</p></div>
+</div>
+</main>
+<button class="btn-float-refresh" onclick="loadDashboardData()"><i class="material-icons">refresh</i></button>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sideMenu">
+<div class="offcanvas-header border-bottom border-secondary">
+<h5 class="offcanvas-title"><i class="material-icons align-middle me-2 text-success">agriculture</i> เมนู</h5>
+<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+</div>
+<div class="offcanvas-body p-0">
+<div class="list-group list-group-flush">
+<a href="#" class="list-group-item list-group-item-action py-3" onclick="loadDashboardData(); bootstrap.Offcanvas.getInstance(document.getElementById('sideMenu')).hide();">🔄 รีเฟรชข้อมูล</a>
+</div>
+<div class="p-3 mt-auto text-center text-muted small">System v4.5 (Fixed)</div>
+</div>
+</div>
+
+<div id="pen-detail-view" style="display: none;">
+<nav class="navbar navbar-dark bg-dark border-bottom border-secondary shadow-sm sticky-top">
+<div class="container-fluid">
+<button class="btn btn-link text-white p-0" onclick="showDashboard()"> <i class="material-icons" style="font-size: 1.8rem;">arrow_back</i> </button>
+<span class="navbar-brand mb-0 h1 fw-bold text-success" id="detail-pen-title">รายละเอียด</span>
+<div style="width: 24px;"></div>
+</div>
+</nav>
+<main class="container py-4">
+<div id="pen-detail-content"></div>
+<div id="pen-action-buttons" class="d-grid gap-2 mt-4"></div>
+</main>
+</div>
+
+<div class="modal fade" id="newBatchModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header"><h5 class="modal-title text-success">🆕 ลงหมูใหม่</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="newBatchForm">
+<div class="modal-body">
+<input type="hidden" name="penNumber" id="newBatchPenNumberInput">
+<div class="mb-3"><label class="label-highlight">รหัสรุ่น</label><input type="text" class="form-control" id="batchIdDisplay" readonly><input type="hidden" name="batchId" id="batchIdInput"></div>
+<div class="mb-3"><label class="label-highlight">วันที่ลงหมู</label><input type="date" class="form-control" name="entryDate" required></div>
+<div class="mb-3"><label class="label-highlight">จำนวน (ตัว)</label><input type="number" class="form-control" name="startCount" placeholder="0" required></div>
+<div class="mb-3"><label class="label-highlight">สูตรอาหาร</label><select class="form-select" name="currentFeed" required><option value="เล็ก" selected>เล็ก</option><option value="รุ่น">รุ่น</option><option value="ขุน">ขุน</option></select></div>
+</div>
+<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn btn-success">บันทึก</button></div>
+</form>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="logEventModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header"><h5 class="modal-title text-info">📝 บันทึก</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="logEventForm">
+<div class="modal-body">
+<input type="hidden" name="penNumber" id="logEventPenNumberInput">
+<div class="row g-2 mb-3">
+<div class="col-6"><label class="label-highlight">หมวดหมู่</label><select class="form-select" name="eventCategory" id="eventCategorySelect" required onchange="toggleEventFields()"><option value="สุขภาพ/การรักษา">สุขภาพ</option><option value="อาหาร/น้ำ">อาหาร</option><option value="สิ่งแวดล้อม">สิ่งแวดล้อม</option><option value="การจัดการทั่วไป">ทั่วไป</option></select></div>
+<div class="col-6"><label class="label-highlight">เหตุการณ์</label><select class="form-select" name="eventType" id="eventTypeSelect" required></select></div>
+</div>
+<div id="healthSection" class="mb-3 p-2 border rounded bg-dark" style="display:none;">
+<div class="d-flex flex-wrap gap-2 mb-2" id="symptomTags">
+<input type="checkbox" class="btn-check" name="symptoms" id="sym1" value="ไอ/จาม"><label class="btn btn-outline-danger btn-sm rounded-pill" for="sym1">😷 ไอ/จาม</label>
+<input type="checkbox" class="btn-check" name="symptoms" id="sym2" value="ขี้ไหล"><label class="btn btn-outline-danger btn-sm rounded-pill" for="sym2">💩 ขี้ไหล</label>
+<input type="checkbox" class="btn-check" name="symptoms" id="sym3" value="ซึม/ไม่กิน"><label class="btn btn-outline-danger btn-sm rounded-pill" for="sym3">😴 ซึม</label>
+</div>
+<div class="row g-2">
+<div class="col-8"><select class="form-select form-select-sm" name="medicineName"><option value="">-- ยา --</option><option value="Amoxy">Amoxy</option><option value="Enro">Enro</option><option value="Ivory">Ivory</option></select></div>
+<div class="col-4"><input type="number" class="form-control form-control-sm" name="medicineDose" placeholder="cc"></div>
+</div>
+</div>
+<div class="mb-3 p-2 rounded border bg-dark" id="destinationPenGroup" style="display:none;">
+<label class="form-label fw-bold text-primary">🚚 ย้ายไปคอกไหน?</label>
+<select class="form-select" name="destinationPen" id="destinationPenSelect"><option>Loading...</option></select>
+</div>
+<div class="mb-3"><label class="label-highlight">หมายเหตุ</label><textarea class="form-control" name="details" style="height: 60px" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+<div class="row g-2 mb-3">
+<div class="col-6"><label class="label-highlight">จำนวน (ตัว)</label><input type="number" class="form-control" name="quantity" placeholder="0" value="0"></div>
+<div class="col-6"><label class="label-highlight">นน.เฉลี่ย</label><input type="number" step="0.1" class="form-control" name="avgWeight" placeholder="0.0"></div>
+</div>
+<div class="mb-3"><input type="file" class="form-control" name="imageFile" accept="image/*" capture="environment"></div>
+</div>
+<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn btn-info text-white">บันทึก</button></div>
+</form>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="changeFeedModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header"><h5 class="modal-title text-warning">🍽️ เปลี่ยนอาหาร</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="changeFeedForm">
+<div class="modal-body">
+<input type="hidden" name="penNumber" id="changeFeedPenNumberInput">
+<input type="hidden" name="eventCategory" value="อาหาร/น้ำ">
+<input type="hidden" name="eventType" value="เปลี่ยนสูตรอาหาร">
+<div class="mb-3"><label class="label-highlight">สูตรใหม่</label><select class="form-select border-warning" name="newFeed" required><option value="" selected disabled>-- เลือกสูตร --</option><option value="รุ่น">รุ่น</option><option value="ขุน">ขุน</option></select></div>
+</div>
+<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button><button type="submit" class="btn btn-warning text-dark">ยืนยัน</button></div>
+</form>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="logSaleModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal-content">
+<div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold"><i class="material-icons align-middle">receipt_long</i> ใบชั่งน้ำหนัก</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<form id="logSaleForm">
+<div class="modal-body">
+<input type="hidden" name="penNumber" id="logSalePenNumberInput">
+<div class="p-3 mb-3 bg-dark border border-secondary rounded-3">
+<div class="row g-3">
+<div class="col-6"><label class="label-highlight">วันที่ขาย</label><input type="date" class="form-control" name="saleDate" required></div>
+<div class="col-6"><label class="label-highlight">เวลา</label><input type="time" class="form-control" id="saleTime"></div>
+<div class="col-12"><hr class="border-secondary my-1"></div>
+<div class="col-6"><label class="label-warning">ผู้ซื้อ (Buyer)</label><input type="text" class="form-control" name="buyerName" placeholder="ชื่อลูกค้า..."></div>
+<div class="col-6"><label class="label-highlight">ทะเบียนรถ</label><input type="text" class="form-control" name="plateNumber" placeholder="เช่น กก-1234"></div>
+<div class="col-6"><label class="label-highlight">ผู้ขาย (Seller)</label><input type="text" class="form-control bg-secondary text-white" name="sellerName" value="นิพนธุ์ฟาร์ม" readonly></div>
+<div class="col-6"><label class="label-highlight">ประเภท</label><select class="form-select" name="saleType"><option value="ขายเหมา">ขายเหมา</option><option value="ขายแยก">ขายแยก</option><option value="ขายซาก">ขายซาก</option></select></div>
+</div>
+</div>
+<div class="card mb-3 border-primary bg-dark shadow-sm">
+<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+<span class="fw-bold"><i class="material-icons align-middle fs-6">scale</i> รายการชั่งน้ำหนัก</span>
+<span class="badge bg-white text-primary rounded-pill px-3" id="weighingCountBadge">0 ตัว</span>
+</div>
+<div class="card-body p-2">
+<div class="input-group mb-2">
+<span class="input-group-text fw-bold">นน.รวม</span>
+<input type="number" class="form-control text-center fs-5 text-white bg-dark border-secondary" id="tempGrossWt" placeholder="0" inputmode="numeric">
+<span class="input-group-text bg-secondary text-white border-secondary">- น้ำหนักชุด</span>
+<input type="number" class="form-control text-center bg-dark text-warning border-secondary" id="tempTareWt" placeholder="0" inputmode="numeric">
+<button type="button" class="btn btn-success px-4 fw-bold" onclick="addWeighingRow()"><i class="material-icons align-middle">add_circle</i> เพิ่ม</button>
+</div>
+<div class="table-responsive rounded border border-secondary" style="max-height: 250px; overflow-y: auto;">
+<table class="table table-dark table-striped table-bordered table-sm mb-0 text-center align-middle">
+<thead class="table-secondary text-dark"><tr><th style="width: 15%">อันดับที่</th><th style="width: 25%">รวม(กก.)</th><th style="width: 25%">-ชุด(กก.)</th><th style="width: 25%">สุทธิ</th><th style="width: 10%">ลบ</th></tr></thead>
+<tbody id="weighingTableBody"></tbody>
+</table>
+</div>
+<input type="hidden" name="weighingDetails" id="weighingDetailsInput">
+<input type="hidden" name="weighingDetailsJson" id="weighingDetailsJson">
+</div>
+</div>
+<div class="ticket-summary mb-3 bg-dark border border-secondary rounded-3 p-3 shadow">
+<h6 class="fw-bold border-bottom border-secondary pb-2 text-info">สรุปรายการ (Summary)</h6>
+<div class="row mb-2"><div class="col-6 text-secondary">หมูทั้งหมด:</div><div class="col-6 text-end fw-bold text-white fs-5"><span id="sumQtyDisplay">0</span> ตัว</div><input type="hidden" name="quantity" id="saleQuantity"></div>
+<div class="row mb-2"><div class="col-6 text-secondary">นน.สุทธิรวม:</div><div class="col-6 text-end fw-bold text-white fs-5"><span id="sumWeightDisplay">0</span> กก.</div><input type="hidden" name="totalWeight" id="totalWeight"></div>
+<div class="row mb-3 text-secondary small"><div class="col-6">เฉลี่ย/ตัว:</div><div class="col-6 text-end"><span id="avgWeightDisplay">0.00</span> กก.</div></div>
+<hr class="border-secondary">
+<div class="row mb-3 align-items-center bg-gray-900 p-2 rounded">
+<div class="col-5 fw-bold text-warning fs-5">ราคาขาย:</div>
+<div class="col-7"><div class="input-group"><input type="number" step="0.01" class="form-control text-end fs-5 fw-bold text-warning border-warning" id="pricePerKg" name="pricePerKg" required oninput="calculateSaleTotal()" placeholder="0.00"><span class="input-group-text bg-warning text-dark fw-bold">บ./กก.
+</span></div></div>
+</div>
+<label class="label-highlight mb-1 small">หักค่าใช้จ่าย (ถ้ามี)</label>
+<div class="row g-2 mb-3">
+<div class="col-4"><div class="form-floating"><input type="number" class="form-control form-control-sm text-end text-danger border-danger" id="feeCatching" name="feeCatching" placeholder="0" oninput="calculateSaleTotal()"><label class="text-danger">ค่าจับ</label></div></div>
+<div class="col-4"><div class="form-floating"><input type="number" class="form-control form-control-sm text-end text-danger border-danger" id="feeWeighing" name="feeWeighing" placeholder="0" oninput="calculateSaleTotal()"><label class="text-danger">ค่าตั๋ว</label></div></div>
+<div class="col-4"><div class="form-floating"><input type="number" class="form-control form-control-sm text-end text-danger border-danger" id="feeTransport" name="feeTransport" placeholder="0" oninput="calculateSaleTotal()"><label class="text-danger">ขนส่ง</label></div></div>
+</div>
+<div class="bg-success bg-gradient text-white p-3 rounded-3 text-center shadow-lg border border-light">
+<small class="text-uppercase" style="letter-spacing: 1px;">รวมเป็นเงินทั้งสิ้น (Net Total)</small>
+<h1 class="m-0 fw-bold font-digital mt-1 display-4" id="saleNetTotalDisplay">0.00</h1>
+<small>บาท</small>
+<input type="hidden" name="totalPrice" id="saleTotalPrice">
+<input type="hidden" name="fees" id="saleFees">
+<input type="hidden" name="netTotal" id="saleNetTotalInput">
+</div>
+</div>
+<div class="row g-2 bg-dark border border-secondary p-2 rounded mb-3">
+<div class="col-6"><label class="label-highlight small">ผู้บันทึก</label><input type="text" class="form-control form-control-sm" name="recorderName" placeholder="ชื่อคุณ..."></div>
+<div class="col-6"><label class="label-highlight small">พยาน</label><input type="text" class="form-control form-control-sm" name="witnessName" placeholder="ชื่อพยาน..."></div>
+</div>
+<div class="form-check form-switch p-2 border border-danger rounded bg-dark d-flex align-items-center">
+<input class="form-check-input ms-0 me-2" type="checkbox" name="sellAll" id="sellAllCheck" style="width: 3em; height: 1.5em;">
+<label class="form-check-label text-danger fw-bold ms-2" for="sellAllCheck">ปิดรุ่นนี้ (ขายหมดคอก/ล้างคอก)</label>
+</div>
+</div>
+<div class="modal-footer bg-dark border-top border-secondary">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+<button type="button" class="btn btn-danger text-white fw-bold me-auto shadow" onclick="printReceiptPDF()"><i class="material-icons align-middle me-1">picture_as_pdf</i> สร้าง PDF</button>
+<button type="submit" class="btn btn-primary w-50 py-2 fw-bold shadow">บันทึกข้อมูล</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="growthTrackModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header bg-secondary text-white"><h5 class="modal-title"><i class="material-icons align-middle me-2">query_stats</i> ติดตามการโต</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+<form id="growthTrackForm">
+<div class="modal-body">
+<input type="hidden" name="penNumber" id="growthTrackPenNumberInput">
+<input type="hidden" name="eventCategory" value="การจัดการทั่วไป">
+<input type="hidden" name="eventType" value="ติดตามการโต">
+<div class="mb-3">
+<label class="label-highlight">น้ำหนักเฉลี่ย (กก./ตัว)</label>
+<div class="input-group">
+<input type="number" step="0.01" class="form-control fs-5 fw-bold text-info bg-dark border-secondary" name="avgWeight" placeholder="0.00">
+<span class="input-group-text bg-secondary text-white">กก.</span>
+</div>
+<div class="form-text text-muted small">*สุ่มชั่งเพื่อดู ADG (ไม่ใส่ก็ได้)</div>
+</div>
+<div class="text-center mb-3 p-3 border border-secondary rounded bg-dark">
+<label class="form-label fw-bold text-white mb-2"><i class="material-icons align-middle">add_a_photo</i> ถ่ายรูปสภาพหมู</label>
+<input type="file" class="form-control" name="imageFile" accept="image/*" capture="environment">
+</div>
+<div class="form-floating">
+<textarea class="form-control bg-dark text-white border-secondary" name="details" style="height: 100px" placeholder="Details"></textarea>
+<label class="text-muted">บันทึกเพิ่มเติม (สุขภาพ/ความกิน)</label>
+</div>
+</div>
+<div class="modal-footer border-secondary">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+<button type="submit" class="btn btn-info text-dark fw-bold shadow">บันทึกข้อมูล</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+let ALL_DATA = {};
+const initialPen = <?!= JSON.stringify(startPen) ?>;
+let weighingList = [];
+let SYSTEM_SETTINGS = {};
+
+const EVENT_TYPES = {
+'สุขภาพ/การรักษา' : ['ฉีดวัคซีน', 'ให้ยา/รักษา', 'พบหมูตาย', 'คัดทิ้ง', 'สังเกตอาการ'],
+'อาหาร/น้ำ' : ['เปลี่ยนสูตรอาหาร', 'เติมอาหาร', 'แจ้งซ่อมระบบน้ำ', 'แจ้งซ่อมถังอาหาร'],
+'สิ่งแวดล้อม' : ['ทำความสะอาด', 'ซ่อมแซมโรงเรือน', 'อุณหภูมิผิดปกติ'],
+'การจัดการทั่วไป' : ['ย้ายคอก', 'ชั่งน้ำหนัก', 'อื่นๆ']
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+handleFormSubmit('newBatchForm', 'fatten_createNewBatch', new bootstrap.Modal(document.getElementById('newBatchModal')));
+handleFormSubmit('logEventForm', 'fatten_logEvent', new bootstrap.Modal(document.getElementById('logEventModal')));
+handleFormSubmit('changeFeedForm', 'fatten_logEvent', new bootstrap.Modal(document.getElementById('changeFeedModal')));
+handleFormSubmit('growthTrackForm', 'fatten_logEvent', new bootstrap.Modal(document.getElementById('growthTrackModal')));
+handleFormSubmit('logSaleForm', 'fatten_logSale', new bootstrap.Modal(document.getElementById('logSaleModal')));
+
+document.getElementById('eventCategorySelect').addEventListener('change', toggleEventFields);
+document.getElementById('eventTypeSelect').addEventListener('change', checkMovePen);
+
+updateClock(); setInterval(updateClock, 1000);
+loadDashboardData();
+});
+
+function loadDashboardData() {
+const btn = document.querySelector('.btn-float-refresh i');
+if(btn) btn.classList.add('fa-spin');
+
+google.script.run.withSuccessHandler(res => {
+try {
+const r = JSON.parse(res);
+if(!r.success) throw new Error(r.message);
+ALL_DATA = r.data;
+SYSTEM_SETTINGS = r.data.settings || {};
+updateAlerts(ALL_DATA.alerts);
+updateStats(ALL_DATA.pigCounts);
+updateGrid(ALL_DATA.penData, ALL_DATA.alerts);
+
+if(initialPen) {
+const p = ALL_DATA.penData.find(x => x.penNumber == initialPen);
+if(p) showPenDetail(p.penNumber);
+}
+} catch(e){ Swal.fire('Error', e.message, 'error'); }
+if(btn) btn.classList.remove('fa-spin');
+}).withFailureHandler(e => Swal.fire('Error', e.message, 'error')).fatten_getDashboardData();
+}
+
+function updateGrid(pens, alerts) {
+const grid = document.getElementById('pen-grid');
+grid.innerHTML = '';
+const targetAge = (SYSTEM_SETTINGS && SYSTEM_SETTINGS.targetSaleAge) ? SYSTEM_SETTINGS.targetSaleAge : 150;
+
+pens.forEach(p => {
+const hasAlert = alerts[p.penNumber];
+const penStatus = p.status === 'ใช้งาน' ? p.feedFormula : 'ว่าง';
+let content = '';
+
+if (p.status === 'ว่าง') {
+content = `<div class="text-center py-4 opacity-50 text-secondary"><i class="material-icons fs-1">cottage</i><br>คอกว่าง</div><div class="mt-2 text-center"><span class="badge bg-success rounded-pill px-3 py-2">แตะเพื่อลงหมู</span></div>`;
+} else {
+const days = p.days || 0;
+const progress = Math.min(100, (days / targetAge) * 100);
+let barColor = 'bg-success'; if(days >= targetAge) barColor = 'bg-danger'; else if(days >= targetAge * 0.8) barColor = 'bg-warning';
+
+content = `<div class="mt-2"><div class="info-row"><span class="text-white-50">อายุ</span><span class="info-val-digital">${days} วัน</span></div><div class="progress progress-dark mb-2"><div class="progress-bar ${barColor}" role="progressbar" style="width: ${progress}%"></div></div><div class="info-row"><span class="text-white-50">คงเหลือ</span><b class="info-val fs-5 text-white">${p.currentCount} ตัว</b></div><div class="info-row border-0"><span class="text-white-50">อาหาร</span><span class="badge bg-dark border border-secondary text-info">${p.feedFormula}</span></div></div>`;
+}
+
+grid.innerHTML += `<div class="col"><div class="pen-card position-relative ${hasAlert?'pen-urgent':''}"><div class="status-bar-left bg-status-${penStatus}"></div><div class="pen-clickable-area" onclick="onCardClick('${p.penNumber}')"><div class="pen-card-header"><span class="pen-number font-digital text-white fs-5">${p.penNumber}</span>${hasAlert?'<i class="material-icons text-danger animate-pulse">notifications</i>':''}</div><div class="pen-card-body">${content}</div></div></div></div>`;
+});
+}
+
+function onCardClick(penId) {
+const p = ALL_DATA.penData.find(x => x.penNumber == penId);
+if (p && p.status === 'ว่าง') openModal('newBatchModal', penId);
+else showPenDetail(penId);
+}
+
+function showPenDetail(penId) {
+const p = ALL_DATA.penData.find(x => x.penNumber == penId);
+if(!p) return;
+document.getElementById('detail-pen-title').textContent = `คอก ${p.penNumber}`;
+
+let h = `<div class="card shadow-sm mb-3 border border-secondary rounded-4 overflow-hidden bg-dark"><ul class="list-group list-group-flush">`;
+
+const map = {
+'status': { label: 'สถานะ', icon: 'info' },
+'batchId': { label: 'รหัสรุ่น', icon: 'qr_code' },
+'startDate': { label: 'วันที่ลงหมู', icon: 'event' },
+'days': { label: 'จำนวนวันที่เลี้ยง', icon: 'calendar_today' },
+'startCount': { label: 'จำนวนเริ่มต้น', icon: 'pets' },
+'currentCount': { label: 'จำนวนคงเหลือ', icon: 'pets' },
+'feedFormula': { label: 'สูตรอาหารปัจจุบัน', icon: 'restaurant' }
+};
+
+for (let key in map) {
+let v = p[key];
+if (key === 'startDate' && v) v = parseDateThai(v);
+if (p.status === 'ว่าง' && key !== 'status') continue;
+
+h += `<li class="list-group-item d-flex justify-content-between align-items-center py-3">
+<span class="text-white-50"><i class="material-icons align-middle me-2 fs-6 text-success">${map[key].icon}</i>${map[key].label}</span>
+<b class="text-white font-digital">${v || '-'}</b>
+</li>`;
+}
+document.getElementById('pen-detail-content').innerHTML = h + `</ul></div>`;
+
+let btns = `<div class="row g-2"><div class="col-6"><button class="btn btn-info w-100 text-dark py-3 fw-bold rounded-3 shadow-sm" onclick="openModal('logEventModal','${p.penNumber}')">📝 บันทึก</button></div><div class="col-6"><button class="btn btn-secondary w-100 py-3 fw-bold rounded-3 shadow-sm" onclick="openModal('growthTrackModal','${p.penNumber}')">📸 รูปภาพ</button></div><div class="col-6"><button class="btn btn-warning w-100 text-dark py-3 fw-bold rounded-3 shadow-sm" onclick="openModal('changeFeedModal','${p.penNumber}')">🍽️ อาหาร</button></div><div class="col-6"><button class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm" onclick="openModal('logSaleModal','${p.penNumber}')">💰 ขาย</button></div></div>`;
+
+document.getElementById('pen-action-buttons').innerHTML = btns;
+document.getElementById('dashboard-view').style.display='none';
+document.getElementById('pen-detail-view').style.display='block';
+window.scrollTo(0,0);
+}
+
+function showDashboard() { document.getElementById('dashboard-view').style.display='block'; document.getElementById('pen-detail-view').style.display='none'; }
+
+function openModal(id, pen) {
+const m = bootstrap.Modal.getOrCreateInstance(document.getElementById(id));
+const penInput = document.getElementById(id.replace('Modal','PenNumberInput'));
+if(penInput) penInput.value = pen;
+
+if(id==='newBatchModal') {
+const d=new Date(); const yyyy = d.getFullYear().toString().slice(-2); const mm = ('0'+(d.getMonth()+1)).slice(-2); const dd = ('0'+d.getDate()).slice(-2);
+document.getElementById('batchIdDisplay').value = yyyy + mm + dd + pen;
+document.getElementById('batchIdInput').value = document.getElementById('batchIdDisplay').value;
+document.querySelector('#newBatchForm [name=entryDate]').value = d.toISOString().split('T')[0];
+}
+else if(id==='logSaleModal') {
+weighingList=[]; renderWeighingTable();
+document.querySelector('#logSaleForm [name=saleDate]').value = new Date().toISOString().split('T')[0];
+const now = new Date(); document.getElementById('saleTime').value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+}
+else if(id==='logEventModal') { openLogEventModal(pen); }
+
+m.show();
+}
+
+function openLogEventModal(pen) {
+const sel = document.getElementById('destinationPenSelect'); sel.innerHTML= '<option disabled selected>เลือกคอกปลายทาง</option>';
+ALL_DATA.penData.forEach(p => { if(p.penNumber != pen) sel.add(new Option(`${p.penNumber} (${p.status})`, p.penNumber)); });
+toggleEventFields();
+}
+
+function toggleEventFields() {
+const cat = document.getElementById('eventCategorySelect').value;
+const typeSelect = document.getElementById('eventTypeSelect'); typeSelect.innerHTML = '';
+if(EVENT_TYPES[cat]) EVENT_TYPES[cat].forEach(t => typeSelect.add(new Option(t, t)));
+document.getElementById('healthSection').style.display = (cat === 'สุขภาพ/การรักษา') ? 'block' : 'none';
+checkMovePen();
+}
+
+function checkMovePen() {
+const isMove = document.getElementById('eventTypeSelect').value === 'ย้ายคอก';
+document.getElementById('destinationPenGroup').style.display = isMove ? 'block' : 'none';
+document.getElementById('destinationPenSelect').required = isMove;
+}
+
+// --- Weighing Logic ---
+function addWeighingRow() {
+const q = 1;
+const gross = parseFloat(document.getElementById('tempGrossWt').value);
+const tare = parseFloat(document.getElementById('tempTareWt').value) || 0;
+
+if (!gross) { Swal.fire('ข้อมูลไม่ครบ', 'กรุณาใส่น้ำหนักรวม', 'warning'); return; }
+if (gross <= tare) { Swal.fire('ผิดพลาด', 'น้ำหนักรวมต้องมากกว่าน้ำหนักชุด', 'error'); return; }
+
+weighingList.push({ q, gross, tare, net: gross - tare });
+document.getElementById('tempGrossWt').value = '';
+document.getElementById('tempGrossWt').focus();
+renderWeighingTable();
+}
+
+function renderWeighingTable() {
+const tbody = document.getElementById('weighingTableBody'); tbody.innerHTML = '';
+let sq=0, s_net=0;
+weighingList.forEach((i, idx) => {
+sq += i.q; s_net += i.net;
+tbody.innerHTML += `<tr><td>${idx+1}</td><td>${i.gross}</td><td class="text-warning small">-${i.tare}</td><td class="fw-bold text-success">${i.net}</td><td><button type="button" class="btn btn-sm btn-outline-danger p-0 px-2" onclick="weighingList.splice(${idx},1);renderWeighingTable()">×</button></td></tr>`;
+});
+document.getElementById('sumQtyDisplay').textContent = sq; document.getElementById('sumWeightDisplay').textContent = s_net;
+document.getElementById('weighingCountBadge').textContent = `${sq} ตัว`;
+document.getElementById('avgWeightDisplay').textContent = sq > 0 ? (s_net / sq).toFixed(2) : "0.00";
+document.getElementById('saleQuantity').value = sq; document.getElementById('totalWeight').value = s_net;
+document.getElementById('weighingDetailsInput').value = weighingList.map((i,idx) => `${idx+1}. (${i.gross}-${i.tare}=${i.net})`).join(' | ');
+document.getElementById('weighingDetailsJson').value = JSON.stringify(weighingList);
+calculateSaleTotal();
+}
+
+function calculateSaleTotal() {
+const netWt = parseFloat(document.getElementById('totalWeight').value)||0;
+const price = parseFloat(document.getElementById('pricePerKg').value)||0;
+const fees = (parseFloat(document.getElementById('feeCatching').value)||0) + (parseFloat(document.getElementById('feeWeighing').value)||0) + (parseFloat(document.getElementById('feeTransport').value)||0);
+const total = (netWt * price) - fees;
+
+document.getElementById('saleTotalPrice').value = (netWt * price).toFixed(2);
+document.getElementById('saleFees').value = fees.toFixed(2);
+document.getElementById('saleNetTotalInput').value = total;
+document.getElementById('saleNetTotalDisplay').textContent = total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// --- Submit Logic ---
+function handleFormSubmit(fid, func, modal) {
+document.getElementById(fid).addEventListener('submit', function(e){
+e.preventDefault();
+const fd = new FormData(this); const d = Object.fromEntries(fd.entries());
+const sym = fd.getAll('symptoms'); if(sym.length) d.symptoms = sym.join(', ');
+if(d.imageFile) delete d.imageFile;
+
+const file = this.querySelector('[type="file"]');
+if(file && file.files[0]) {
+if(file.files[0].size > 10*1024*1024) { Swal.fire('ใหญ่ไป', 'รูปเกิน 10MB', 'error'); return; }
+const r = new FileReader();
+r.onload = ev => { d.fileUpload = {base64: ev.target.result.split(',')[1], mimeType: file.files[0].type, name: file.files[0].name}; send(func, d, modal); };
+r.readAsDataURL(file.files[0]);
+} else { send(func, d, modal); }
+});
+}
+
+function send(func, data, modal) {
+Swal.fire({title:'บันทึก...', didOpen:()=>Swal.showLoading()});
+google.script.run.withSuccessHandler(res => {
+const r = JSON.parse(res); modal.hide();
+Swal.fire(r.success?'สำเร็จ':'ผิดพลาด', r.message, r.success?'success':'error').then(() => loadDashboardData());
+}).withFailureHandler(e => Swal.fire('Error', e.message, 'error'))[func](data);
+}
+
+function printReceiptPDF() {
+const form = document.getElementById('logSaleForm');
+if(!form.checkValidity()) { form.reportValidity(); return; }
+
+const fd = new FormData(form); const data = Object.fromEntries(fd.entries());
+data.saleTime = document.getElementById('saleTime').value;
+
+if(!weighingList || weighingList.length === 0) { Swal.fire('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการชั่งน้ำหนักอย่างน้อย 1 รายการ', 'warning'); return; }
+data.weighingDetailsJson = JSON.stringify(weighingList);
+
+Swal.fire({ title: 'กำลังสร้าง PDF...', html: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+google.script.run.withSuccessHandler(res => {
+if (res.success) { Swal.close(); window.open(res.url, '_blank'); }
+else { Swal.fire('Error', res.message, 'error'); }
+}).withFailureHandler(e => { Swal.fire('Error', e.message, 'error'); }).fatten_createReceiptPDF(data);
+}
+
+function updateClock() {
+const d=new Date();
+document.getElementById('realtime-clock-time').textContent = d.toLocaleTimeString('th-TH',{hour12:false});
+document.getElementById('realtime-clock-date').textContent = d.toLocaleDateString('th-TH',{dateStyle:'full'});
+}
+
+function updateStats(s) {
+if(!s) return;
+document.getElementById('stat-small-pigs').textContent = s.smallPigs;
+document.getElementById('stat-junior-pigs').textContent = s.juniorPigs;
+document.getElementById('stat-fatten-pigs').textContent = s.fattenPigs;
+document.getElementById('stat-total-pigs').textContent = s.totalPigs;
+}
+
+function updateAlerts(alerts) {
+let h = '';
+for(let k in alerts) alerts[k].forEach(a => h+=`<div class="alert alert-warning py-2 mb-2 bg-dark text-warning border-warning"><i class="material-icons align-middle fs-6">warning</i> <b>${k}:</b> ${a.message}</div>`);
+document.getElementById('alert-box-container').innerHTML = h;
+}
+
+function parseDateThai(str) {
+if(!str) return '';
+if(typeof str === 'string' && (str.indexOf('-') > -1 || str.indexOf('T') > -1)) {
+const d = new Date(str);
+if(!isNaN(d)) return d.toLocaleDateString('th-TH');
+}
+return str;
+}
+</script>
+
+</body>
+</html>
