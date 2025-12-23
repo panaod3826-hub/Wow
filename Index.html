@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <base target="_top">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>นิพนธ์ฟาร์ม - Smart Center</title>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Chivo+Mono:wght@400;700&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+ <style>
+   body { font-family: 'Sarabun', sans-serif; background: #eef2f6; overflow-x: hidden; padding-bottom: 120px; }
+   
+   /* Header Animation */
+   .header-bg {
+     background-image: url("https://img2.pic.in.th/pic/Gemini_Generated_Image_o361x2o361x2o361.png");
+     background-size: cover; background-position: center;
+     height: 240px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;
+     position: relative; margin-bottom: -60px; z-index: 0;
+     animation: zoomSlow 30s infinite alternate;
+   }
+   .header-overlay { background: rgba(15, 23, 42, 0.65); position: absolute; inset: 0; border-radius: inherit; }
+   @keyframes zoomSlow { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+  
+   /* Menu Cards */
+   .menu-card {
+     background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+     border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+     transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden;
+   }
+   .menu-card:active { transform: scale(0.98); }
+
+   /* Icons */
+   .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+   .icon-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+   .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
+   .icon-yellow { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+   .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+
+   /* Ticker Animation */
+   .ticker-wrap {
+     width: 100%; overflow: hidden; white-space: nowrap; height: 20px; position: relative;
+     mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+     -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+     display: flex; align-items: center;
+   }
+   .ticker-content {
+     display: inline-block; white-space: nowrap;
+     font-size: 0.75rem; font-weight: 500; font-family: 'Chivo Mono', monospace;
+     padding-right: 40px; 
+   }
+   .ticker-content.alert { color: #ef4444; font-weight: 700; }
+   @keyframes smoothTicker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+   /* Floating Button */
+   .fab-container {
+     position: fixed; bottom: 70px; right: 20px; z-index: 50;
+     display: flex; flex-direction: column; align-items: center; gap: 8px;
+   }
+   .fab-clock {
+     width: 70px; height: 70px; border-radius: 50%;
+     background: linear-gradient(135deg, #2563eb, #4f46e5);
+     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.6);
+     display: flex; align-items: center; justify-content: center;
+     color: white; font-size: 32px; cursor: pointer;
+     border: 4px solid rgba(255, 255, 255, 0.8);
+     transition: transform 0.2s;
+   }
+   .fab-clock:active { transform: scale(0.9); }
+   .fab-label {
+     background: #1e293b; color: white; padding: 4px 12px; border-radius: 20px;
+     font-size: 0.75rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+     position: relative; animation: bounce 2s infinite; white-space: nowrap;
+   }
+   .fab-label::after {
+     content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+     border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #1e293b;
+   }
+   @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+   /* Modal */
+   .modal-overlay { background: rgba(0,0,0,0.8); position: fixed; inset: 0; z-index: 60; display: none; place-items: center; backdrop-filter: blur(3px); }
+   .modal-box { background: white; width: 90%; max-width: 340px; border-radius: 24px; padding: 25px; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+   @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+ </style>
+</head>
+<body>
+
+ <div class="header-bg">
+   <div class="header-overlay"></div>
+   <div class="relative z-10 text-center pt-12 text-white px-4">
+     <h1 class="text-3xl font-extrabold tracking-wide drop-shadow-md">นิพนธ์ฟาร์ม</h1>
+     <div class="mt-2 inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20">
+       <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+       <span class="text-xs font-mono text-white/90">Smart Farm System</span>
+     </div>
+   </div>
+ </div>
+
+ <div class="relative z-20 px-5 max-w-md mx-auto space-y-4 mt-2">
+  
+   <a href="<?= appUrl ?>?page=sow" class="menu-card flex items-center p-4 rounded-2xl gap-4 group">
+     <div class="icon-box icon-red"><i class="material-icons">pets</i></div>
+     <div class="flex-1 overflow-hidden">
+       <h3 class="font-bold text-slate-700 text-lg group-hover:text-red-500 transition">แม่พันธุ์</h3>
+       <div class="ticker-wrap" id="wrap-sow">
+         <div class="ticker-content text-slate-400">กำลังโหลด...</div>
+       </div>
+     </div>
+     <i class="material-icons text-slate-300">chevron_right</i>
+   </a>
+
+   <a href="<?= appUrl ?>?page=fatten" class="menu-card flex items-center p-4 rounded-2xl gap-4 group">
+     <div class="icon-box icon-green"><i class="material-icons">restaurant</i></div>
+     <div class="flex-1 overflow-hidden">
+       <h3 class="font-bold text-slate-700 text-lg group-hover:text-green-500 transition">หมูขุน</h3>
+       <div class="ticker-wrap" id="wrap-fatten">
+         <div class="ticker-content text-slate-400">กำลังโหลด...</div>
+       </div>
+     </div>
+     <i class="material-icons text-slate-300">chevron_right</i>
+   </a>
+
+   <a href="<?= appUrl ?>?page=feed" class="menu-card flex items-center p-4 rounded-2xl gap-4 group">
+     <div class="icon-box icon-yellow"><i class="material-icons">inventory_2</i></div>
+     <div class="flex-1 overflow-hidden">
+       <h3 class="font-bold text-slate-700 text-lg group-hover:text-amber-500 transition">อาหาร</h3>
+       <div class="ticker-wrap" id="wrap-feed">
+         <div class="ticker-content text-slate-400">กำลังโหลด...</div>
+       </div>
+     </div>
+     <i class="material-icons text-slate-300">chevron_right</i>
+   </a>
+
+   <a href="<?= appUrl ?>?page=hr" class="menu-card flex items-center p-4 rounded-2xl gap-4 group ring-2 ring-blue-50 border-blue-200">
+     <div class="icon-box icon-blue"><i class="material-icons">people_alt</i></div>
+     <div class="flex-1 overflow-hidden">
+       <h3 class="font-bold text-slate-700 text-lg group-hover:text-blue-500 transition">ระบบ HR</h3>
+       <div class="ticker-wrap">
+          <div class="ticker-content text-blue-400 font-bold">👉 เงินเดือน, เบิกเงิน, อนุมัติ</div>
+       </div>
+     </div>
+     <i class="material-icons text-slate-300">chevron_right</i>
+   </a>
+ </div>
+
+ <div class="fab-container">
+   <div class="fab-label">ลงเวลาทำงาน</div>
+   <div class="fab-clock" onclick="openClockModal()">
+     <i class="material-icons">touch_app</i>
+   </div>
+ </div>
+
+ <div id="clockModal" class="modal-overlay">
+   <div class="modal-box text-center">
+     <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+       <i class="material-icons text-3xl">schedule</i>
+     </div>
+     <h3 class="text-xl font-bold text-slate-800 mb-1">ลงเวลาทำงาน</h3>
+     <p class="text-xs text-slate-400 mb-4">ระบบจะบันทึกเวลาและพิกัด GPS ของคุณ</p>
+    
+     <div class="text-left mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+       <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">เลือกชื่อของคุณ</label>
+       <select id="quick-emp-select" class="w-full p-2 mt-1 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+         <option value="">กำลังโหลดรายชื่อ...</option>
+       </select>
+     </div>
+
+     <div id="gps-status" class="text-xs text-slate-400 mb-5 bg-slate-50 py-2 rounded-lg">
+       <i class="material-icons text-[10px] align-middle">satellite_alt</i> รอรับพิกัด GPS...
+     </div>
+
+     <div class="flex gap-3">
+       <button onclick="closeClockModal()" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm transition hover:bg-slate-200">ยกเลิก</button>
+       <button onclick="confirmClockIn()" class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/30 hover:scale-105 transition active:scale-95">ยืนยัน</button>
+     </div>
+   </div>
+ </div>
+
+ <div class="fixed bottom-0 left-0 w-full bg-slate-900 text-green-400 font-mono text-xs py-1.5 px-2 border-t border-slate-700 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+   <marquee id="marquee-text" scrollamount="4">📢 ยินดีต้อนรับสู่ นิพนธ์ฟาร์ม 2025</marquee>
+ </div>
+
+ <script>
+   let empList = [];
+
+   window.onload = function() {
+     const d = new Date();
+     const dateStr = d.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+     document.getElementById('marquee-text').innerText = `📢 สวัสดีครับ! วันนี้ ${dateStr} ✨ ขอให้มีความสุขกับการทำงานครับ 🐷🌿`;
+
+     // ดึงสถิติ
+     google.script.run.withSuccessHandler(showStats).main_getGlobalStats();
+
+     // โหลดรายชื่อพนักงาน
+     google.script.run.withSuccessHandler(list => {
+       empList = list;
+       const sel = document.getElementById('quick-emp-select');
+       sel.innerHTML = '<option value="">-- แตะเลือกชื่อ --</option>';
+       list.forEach(e => {
+         let opt = document.createElement('option');
+         opt.value = JSON.stringify({id:e.id, name:e.name});
+         opt.innerText = e.name;
+         sel.appendChild(opt);
+       });
+     }).hr_getEmployeeList();
+   };
+
+   function showStats(data) {
+     if(data) {
+       updateTicker('sow', data.sow || "ไม่มีข้อมูล", false);
+       updateTicker('fatten', data.fatten || "ไม่มีข้อมูล", false);
+       const isAlert = data.feed && data.feed.includes("ใกล้หมด");
+       updateTicker('feed', data.feed || "ปกติ", isAlert);
+     }
+   }
+  
+   function updateTicker(id, text, isAlert) {
+       const wrap = document.getElementById('wrap-' + id);
+       if(!wrap) return;
+       const contentHTML = `<div class="ticker-content ${isAlert ? 'alert' : ''}">${text}</div><div class="ticker-content ${isAlert ? 'alert' : ''}">${text}</div>`;
+       wrap.innerHTML = contentHTML;
+       const width = text.length * 10;
+       const duration = Math.max(15, width / 30);
+       wrap.querySelectorAll('.ticker-content').forEach(e => {
+           e.style.animation = `smoothTicker ${duration}s linear infinite`;
+       });
+   }
+
+   // Modal & GPS
+   function openClockModal() { document.getElementById('clockModal').style.display = 'grid'; }
+   function closeClockModal() { 
+     document.getElementById('clockModal').style.display = 'none'; 
+     document.getElementById('gps-status').innerHTML = '<i class="material-icons text-[10px]">satellite_alt</i> รอรับพิกัด...';
+   }
+
+   function confirmClockIn() {
+     const val = document.getElementById('quick-emp-select').value;
+     if (!val) return Swal.fire('เลือกชื่อก่อนครับ', '', 'warning');
+     const me = JSON.parse(val);
+     const statusDiv = document.getElementById('gps-status');
+     statusDiv.innerHTML = '<span class="text-amber-500 animate-pulse font-bold">📡 กำลังขอพิกัด...</span>';
+
+     if (!navigator.geolocation) return Swal.fire('Error', 'ไม่รองรับ GPS', 'error');
+
+     navigator.geolocation.getCurrentPosition(
+       (pos) => {
+         statusDiv.innerHTML = '<span class="text-blue-500 font-bold">📍 บันทึก...</span>';
+         google.script.run.withSuccessHandler(res => {
+           if (res.success) {
+             closeClockModal();
+             Swal.fire({ icon: 'success', title: res.message, timer: 2000, showConfirmButton: false });
+           } else {
+             statusDiv.innerHTML = `<span class="text-red-500 font-bold">${res.message}</span>`;
+             Swal.fire('บันทึกไม่ได้', res.message, 'error');
+           }
+         }).hr_submitTimeLog({
+           empId: me.id, empName: me.name, lat: pos.coords.latitude, lng: pos.coords.longitude
+         });
+       },
+       (err) => {
+         let msg = "หาพิกัดไม่ได้";
+         if(err.code === 1) msg = "กรุณากด 'อนุญาต' (Allow) GPS";
+         statusDiv.innerHTML = `<span class="text-red-500 font-bold">❌ ${msg}</span>`;
+       },
+       { enableHighAccuracy: true, timeout: 10000 }
+     );
+   }
+ </script>
+</body>
+</html>
