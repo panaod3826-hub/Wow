@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>คลังอาหารและยา (Premium Dark)</title>
+<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3069/3069186.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+  body { font-family: 'Kanit', sans-serif; background-color: #1a202c; -webkit-tap-highlight-color: transparent; padding-bottom: 80px; }
+  
+  /* Background Header Image */
+  .header-bg { 
+    background-image: url("https://drive.google.com/uc?export=view&id=1LUFEgZZOO2yOSP_zJ_GHxCCY5XiFVvvH"); 
+    background-size: cover; background-position: center 30%; 
+    background-repeat: no-repeat; position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: rgba(26, 32, 44, 0.7); background-blend-mode: multiply; 
+  }
+  
+  .loader { border: 5px solid #f3f3f3; border-top: 5px solid #f59e0b; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  
+  .tab-btn.active { background-color: #f59e0b; color: #1a202c; box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3); }
+  .card-tap-effect:active { transform: scale(0.98); transition: transform 0.1s ease-out; }
+  
+  .qty-input { width: 80px; text-align: center; padding: 6px; border: 1px solid #4a5568; border-radius: 6px; font-weight: bold; background-color: #2d3748; color: #f7fafc; }
+  
+  /* SweetAlert Dark Theme Overrides */
+  .swal2-popup { background: #2d3748 !important; color: #f7fafc !important; }
+  .swal2-title, .swal2-html-container { color: #f7fafc !important; }
+  .swal2-input, .swal2-select { background-color: #1a202c !important; color: #f7fafc !important; border-color: #4a5568 !important; }
+  .swal2-select option { color: #1a202c !important; background-color: #f7fafc !important; }
+  .swal2-confirm { background-color: #f59e0b !important; color: #1a202c !important; }
+  .swal2-cancel { background-color: #4a5568 !important; color: #f7fafc !important; }
+  
+  .stock-in-row { background-color: #1a202c !important; border-color: #4a5568 !important; }
+  
+  /* Home Button Style */
+  .home-btn {
+    position: absolute; top: 15px; left: 15px; z-index: 50;
+    background: rgba(255,255,255,0.2); color: white;
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px); text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-screen" class="fixed inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-50 hidden">
+  <div class="loader mb-4"></div>
+  <p class="text-white font-bold"> กำลังประมวลผล... </p>
+</div>
+
+<div class="w-full bg-white min-h-screen shadow-xl relative bg-slate-900">
+
+  <header class="bg-gray-800 text-white p-6 rounded-b-3xl shadow-2xl shadow-slate-900/50 mb-6 relative overflow-hidden h-48 flex items-center justify-center">
+    <div class="header-bg"></div>
+    
+    <? var url = getAppUrl(); ?>
+    <a href="<?= url ?>" class="home-btn card-tap-effect">
+      <i class="material-icons">home</i>
+    </a>
+
+    <div class="relative z-10 text-center">
+      <h1 class="text-3xl font-extrabold text-white [text-shadow:_0_2px_4px_rgb(0_0_0_/_40%)]">🐷 นิพนธ์ฟาร์ม</h1>
+      <div class="mt-2 bg-gray-900/50 py-1 px-4 rounded-xl border border-gray-700 inline-block shadow-inner backdrop-blur-sm">
+        <div id="clock-time" class="text-2xl font-mono font-extrabold text-amber-400">00:00:00</div>
+        <div id="clock-date" class="text-[10px] text-gray-400"> กำลังโหลด... </div>
+      </div>
+      <button onclick="openManual()" class="absolute top-[-40px] right-[-10px] bg-gray-700/50 hover:bg-gray-700/80 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-xl transition card-tap-effect">?</button>
+    </div>
+  </header>
+
+  <div class="flex justify-center gap-2 px-4 mb-6">
+    <button onclick="changeTab('main')" id="tab-main" class="tab-btn active flex-1 py-2 rounded-xl font-bold bg-amber-500 text-slate-900 shadow-lg transition-all card-tap-effect">🏠 หน้าหลัก</button>
+    <button onclick="changeTab('report')" id="tab-report" class="tab-btn flex-1 py-2 rounded-xl font-bold bg-gray-700 text-gray-300 shadow-md transition-all card-tap-effect">📊 รายงาน</button>
+    <button onclick="changeTab('settings')" id="tab-settings" class="tab-btn flex-1 py-2 rounded-xl font-bold bg-gray-700 text-gray-300 shadow-md transition-all card-tap-effect">⚙️ ตั้งค่า</button>
+  </div>
+
+  <div id="page-main" class="px-4">
+    <div class="bg-gray-800 p-4 rounded-2xl shadow-xl shadow-gray-900/50 mb-6">
+      <h2 class="text-amber-400 font-bold mb-3">⚡️ เลือกสูตรผสม</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="openFlexibleMix('หมูเล็ก')" class="card-tap-effect bg-gray-700 p-3 rounded-xl text-gray-200 font-bold shadow-md border border-gray-600"> หมูเล็ก </button>
+        <button onclick="openFlexibleMix('หมูรุ่น')" class="card-tap-effect bg-gray-700 p-3 rounded-xl text-gray-200 font-bold shadow-md border border-gray-600"> หมูรุ่น </button>
+        <button onclick="openFlexibleMix('หมูขุน')" class="card-tap-effect bg-gray-700 p-3 rounded-xl text-gray-200 font-bold shadow-md border border-gray-600"> หมูขุน </button>
+        <button onclick="openFlexibleMix('แม่หมู')" class="card-tap-effect bg-gray-700 p-3 rounded-xl text-gray-200 font-bold shadow-md border border-gray-600"> แม่หมู </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2 mb-6">
+      <button onclick="openStockInModal()" class="card-tap-effect bg-emerald-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-emerald-500/50">📥 รับเข้า</button>
+      <button onclick="openAdjustModal()" class="card-tap-effect bg-amber-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-500/50">🛠 ปรับปรุง</button>
+      <button onclick="openEventModal()" class="card-tap-effect bg-purple-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-purple-500/50">📸 รูปภาพ</button>
+    </div>
+
+    <h3 class="font-bold text-gray-300 mb-3 border-l-4 border-amber-500 pl-2">📦 สต็อกคงเหลือ</h3>
+    <div id="stock-display-area" class="space-y-4 pb-10"></div>
+  </div>
+
+  <div id="page-report" class="px-4 hidden">
+    <div class="bg-gray-800 p-5 rounded-2xl shadow-xl shadow-gray-900/50 mb-4 border border-gray-700">
+      <h3 class="font-bold text-center text-gray-200 mb-4"> สรุปยอดเดือนนี้ </h3>
+      <div class="grid grid-cols-2 gap-4 text-center">
+        <div class="bg-gray-700 p-4 rounded-xl shadow-md"><div class="text-xs text-amber-500 font-bold"> ต้นทุนรวม </div><div id="report-cost" class="text-2xl font-bold text-amber-300 my-1">0</div><div class="text-xs text-gray-400"> บาท </div></div>
+        <div class="bg-gray-700 p-4 rounded-xl shadow-md"><div class="text-xs text-green-500 font-bold"> ผสมไปแล้ว </div><div id="report-count" class="text-2xl font-bold text-green-300 my-1">0</div><div class="text-xs text-gray-400"> ครั้ง </div></div>
+      </div>
+    </div>
+    <div class="bg-gray-800 p-4 rounded-2xl shadow-xl shadow-gray-900/50 border border-gray-700 mb-4"><h4 class="font-bold text-gray-300 mb-2 text-sm">🍰 สัดส่วนต้นทุน</h4><div class="h-48 flex justify-center"><canvas id="chart-mat"></canvas></div></div>
+    <div class="bg-gray-800 p-4 rounded-2xl shadow-xl shadow-gray-900/50 border border-gray-700 mb-4"><h4 class="font-bold text-gray-300 mb-2 text-sm">📊 ยอดใช้จ่ายแต่ละสูตร</h4><div class="h-48"><canvas id="chart-formula"></canvas></div></div>
+    <div class="bg-gray-800 p-4 rounded-2xl shadow-xl shadow-gray-900/50 border border-gray-700"><h4 class="font-bold text-gray-300 mb-3 border-b border-gray-700 pb-2">📝 ล่าสุด</h4><div id="report-history-list" class="space-y-2 text-sm"></div></div>
+  </div>
+
+  <div id="page-settings" class="px-4 hidden">
+    <div class="space-y-4 pb-10">
+      <button onclick="loadAllData(true)" class="w-full py-3 bg-amber-500 text-gray-900 rounded-xl shadow-lg font-bold card-tap-effect">🔄 รีเฟรชข้อมูล</button>
+      <div class="bg-gray-800 p-5 rounded-2xl shadow-xl shadow-gray-900/50 border border-gray-700">
+        <h3 class="font-bold mb-4 text-gray-200"> เพิ่มรายการใหม่ </h3>
+        <div class="flex gap-3"><button onclick="addNewItemModal('Mat')" class="flex-1 bg-green-700 text-white py-3 rounded-xl font-bold hover:bg-green-600 card-tap-effect"> วัตถุดิบ </button><button onclick="addNewItemModal('Sup')" class="flex-1 bg-teal-700 text-white py-3 rounded-xl font-bold hover:bg-teal-600 card-tap-effect"> ยา/วิตามิน </button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- GLOBAL VARS ---
+var appData = {}; var currentMixData = {}; var chartInstance1 = null; var chartInstance2 = null;
+const MANUAL_URL = 'https://docs.google.com/document/d/1dnhD3G4z_O5LhIGDU7Yk-oqfvWR-bOqUSPl82wR4FyY/edit?usp=sharing';
+const ADJUST_CATEGORIES = [{ code: 'WASTE', label: 'ของเสีย / หมดอายุ 🗑️' }, { code: 'LOSS', label: 'สูญหาย / รั่วไหล 💧' }, { code: 'FARM_USE', label: 'ใช้เองในฟาร์ม 🥩' }, { code: 'COUNT_ERROR', label: 'นับสต็อกผิดพลาด 🔢' }, { code: 'OTHER', label: 'อื่นๆ (โปรดระบุ)' }];
+const EVENT_CATEGORIES = [{ code: 'RECEIPT', label: 'หลักฐานการรับเข้า/บิลซื้อของ 🧾' }, { code: 'PIG_HEALTH', label: 'รูปภาพหมู/สุขภาพ 🐷' }, { code: 'MATERIAL_ISSUE', label: 'วัตถุดิบเสียหาย/มีปัญหา ⚠️' }, { code: 'MAINTENANCE', label: 'ซ่อมบำรุง/ทั่วไป 🔧' }, { code: 'GENERAL', label: 'ภาพทั่วไป 🖼️' }];
+
+// --- INIT ---
+window.onload = function() { loadAllData(); startClock(); };
+
+function openManual() { Swal.fire({ title: '📖 คู่มือการใช้งานฉบับย่อ', html: `<div class="text-left text-sm text-gray-400 space-y-3 px-2"><div class="p-3 bg-gray-700 border border-gray-600 rounded"><b>1. ผสมอาหาร:</b> เลือกสูตร > เช็คยอด > กดยืนยัน</div><div class="p-3 bg-gray-700 border border-gray-600 rounded"><b>2. รับเข้า:</b> กดรับเข้า > กด +เพิ่ม > เลือกของ > บันทึก</div><div class="text-center mt-4"><a href="${MANUAL_URL}" target="_blank" class="btn bg-amber-500 text-gray-900 py-2 px-4 rounded shadow">📄 อ่านฉบับเต็ม</a></div></div>`, showConfirmButton: false, showCloseButton: true }); }
+function startClock() { function update() { const now = new Date(); const opts = { timeZone: 'Asia/Bangkok' }; document.getElementById('clock-time').innerText = now.toLocaleTimeString('th-TH', {...opts, hour:'2-digit', minute:'2-digit', second:'2-digit'}); document.getElementById('clock-date').innerText = now.toLocaleDateString('th-TH', {...opts, weekday:'long', day:'numeric', month:'long', year:'numeric'}); } update(); setInterval(update, 1000); }
+function showLoading(isShow) { document.getElementById('loading-screen').classList.toggle('hidden', !isShow); }
+
+function changeTab(tabName) { 
+  ['main', 'report', 'settings'].forEach(p => { 
+    document.getElementById('page-' + p).classList.add('hidden'); 
+    document.getElementById('tab-' + p).classList.remove('active', 'bg-amber-500', 'text-slate-900'); 
+    document.getElementById('tab-' + p).classList.add('bg-gray-700', 'text-gray-300'); 
+  }); 
+  document.getElementById('page-' + tabName).classList.remove('hidden'); 
+  var btn = document.getElementById('tab-' + tabName); 
+  btn.classList.remove('bg-gray-700', 'text-gray-300'); 
+  btn.classList.add('active', 'bg-amber-500', 'text-slate-900'); 
+  if(tabName === 'report') loadReport(); 
+}
+
+// ==========================================
+// 🔗 CONNECT TO BACKEND (feed_...)
+// ==========================================
+
+function loadAllData(notify) { 
+  showLoading(true); 
+  google.script.run.withSuccessHandler(function(data) { 
+    showLoading(false); 
+    if (data.error) return Swal.fire('Error', data.error, 'error'); 
+    appData = data; 
+    renderStock(); 
+    if(notify) Swal.fire({icon: 'success', title: 'อัปเดตแล้ว' , timer: 1000, showConfirmButton: false}); 
+  }).feed_getInitialData(); 
+}
+
+function renderStock() {
+  var html = '';
+  if(appData.stock) { 
+    html += '<div class="bg-gray-800 p-4 rounded-xl shadow-xl shadow-gray-900/50 mb-4"><h4 class="font-bold text-amber-400 text-sm mb-4 border-b border-gray-700 pb-2">วัตถุดิบหลัก</h4>'; 
+    appData.stock.forEach(item => { 
+      var isLow = (item.min > 0 && item.current <= item.min); 
+      var isCrit = (item.current <= item.min / 2); 
+      var maxVal = item.min > 0 ? Math.max(item.current, item.min) * 1.2 : item.current; 
+      var percent = maxVal > 0 ? (item.current / maxVal) * 100 : 0; 
+      var barColor = isCrit ? 'bg-red-600' : (isLow ? 'bg-orange-500' : 'bg-green-500'); 
+      var barText = isCrit ? 'วิกฤต' : (isLow ? 'ต่ำกว่าขั้นต่ำ' : 'ปกติ'); 
+      html += `<div class="py-2 border-b border-gray-700 last:border-0"><div class="flex justify-between items-center mb-1"><span class="text-gray-100 font-semibold">${item.name} ${isLow ? '⚠️' : ''}</span><span class="font-bold text-lg ${isLow ? 'text-red-400' : 'text-green-400'}">${item.current.toLocaleString()} <small class="text-gray-400 text-sm">${item.unit}</small></span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div class="${barColor} h-2.5 rounded-full" style="width: ${percent}%"></div></div><div class="text-[10px] text-gray-500 mt-1 flex justify-between"><span>ขั้นต่ำ: ${item.min} ${item.unit}</span><span class="${isLow ? 'text-red-400' : 'text-gray-400'}">${barText}</span></div></div>`; 
+    }); 
+    html += '</div>'; 
+  }
+  if(appData.supplements) { 
+    html += '<div class="bg-gray-800 p-4 rounded-xl shadow-xl shadow-gray-900/50"><h4 class="font-bold text-teal-400 text-sm mb-4 border-b border-gray-700 pb-2">วิตามิน/ยา</h4>'; 
+    appData.supplements.forEach(item => { 
+      html += `<div class="flex justify-between py-2 border-b border-gray-700 last:border-0"><span class="text-gray-100">${item.name}</span><span class="font-bold text-teal-400">${item.current.toFixed(1)} <small class="text-gray-400 text-sm">${item.unit}</small></span></div>`; 
+    }); 
+    html += '</div>'; 
+  }
+  document.getElementById('stock-display-area').innerHTML = html;
+}
+
+function openFlexibleMix(formulaName) { 
+  showLoading(true); 
+  google.script.run.withSuccessHandler(function(data) { 
+    showLoading(false); 
+    if (data.error) return Swal.fire('Error', data.error, 'error'); 
+    currentMixData = data; 
+    showMixPopup(); 
+  }).feed_getMixingPrepData(formulaName); 
+}
+
+function showMixPopup() { 
+  var html = '<div class="text-left text-sm overflow-y-auto max-h-[60vh]"><div class="bg-gray-700 text-amber-400 font-bold p-2 rounded mb-2">วัตถุดิบหลัก (แก้ไขได้)</div><table class="w-full mb-4">' ; 
+  currentMixData.mainItems.forEach((item, idx) => { 
+    if(item.amount > 0 || item.currentStock > 0) html += `<tr class="border-b border-gray-600"><td class="py-2 font-bold text-gray-200">${item.name} <div class="text-xs text-gray-400">เหลือ: ${item.currentStock}</div></td><td class="text-right"><input type="number" id="input-main-${idx}" class="qty-input" value="${item.amount}" onchange="updateAmount('main', ${idx}, this.value)"></td></tr>`; 
+  }); 
+  html += '</table><div class="bg-gray-700 text-teal-400 font-bold p-2 rounded mb-2 flex justify-between"><span>วิตามิน (Auto)</span></div><table class="w-full mb-4">' ; 
+  currentMixData.supplementItems.forEach((item) => { 
+    if(item.amount > 0) html += `<tr class="border-b border-gray-600 bg-gray-800"><td class="py-2 pl-2 text-gray-200">${item.name}</td><td class="text-right pr-2 font-bold text-teal-400">${item.amount} ${item.unit}</td></tr>`; 
+  }); 
+  html += '</table><div class="bg-gray-700 p-3 rounded text-right"><div>ต้นทุน: <span id="sum-cost" class="text-amber-400 font-bold text-xl">0</span> บ.</div><div>นน.: <span id="sum-weight" class="text-gray-300 font-bold">0</span> กก.</div></div></div>' ; 
+  Swal.fire({ title: `สูตร: ${currentMixData.formulaName}`, html: html, width: '600px', showCancelButton: true, confirmButtonText: '✅ ผสม' , confirmButtonColor: '#10b981', didOpen: () => recalculate() }).then((r) => { if (r.isConfirmed) submitMix(); }); 
+}
+
+function updateAmount(type, idx, val) { if (type === 'main') currentMixData.mainItems[idx].amount = parseFloat(val) || 0; recalculate(); }
+
+function recalculate() { 
+  var cost = 0, weight = 0; 
+  currentMixData.mainItems.forEach(i => { cost += i.amount*i.pricePerUnit; weight += i.amount*i.weightPerUnit; }); 
+  currentMixData.supplementItems.forEach(i => { cost += i.amount*i.pricePerUnit; if(i.unit=== 'กก.' ) weight += i.amount; }); 
+  document.getElementById('sum-cost').innerText = cost.toLocaleString(undefined,{maximumFractionDigits:0}); 
+  document.getElementById('sum-weight').innerText = weight.toLocaleString(undefined,{maximumFractionDigits:2}); 
+}
+
+function submitMix() { 
+  showLoading(true); 
+  google.script.run.withSuccessHandler(res => { 
+    showLoading(false); 
+    if(res.error) Swal.fire('Error', res.error, 'error'); 
+    else { appData = res; renderStock(); Swal.fire( 'สำเร็จ' , 'ตัดสต็อกแล้ว' , 'success'); } 
+  }).feed_recordCustomMixing(currentMixData); 
+}
+
+// ==========================================
+// 📥 STOCK IN SYSTEM (+ Invoice Image + Auto Price)
+// ==========================================
+function openStockInModal() { 
+  var html = `
+    <div class="text-left space-y-3">
+      <div><label class="block text-gray-400 text-xs mb-1">ร้านค้า / ผู้จำหน่าย</label><input type="text" id="si-supplier" class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white" placeholder="ระบุชื่อร้านค้า"></div>
+      
+      <div>
+        <label class="block text-gray-400 text-xs mb-1">รูปถ่ายบิล (ถ้ามี)</label>
+        <div class="flex items-center gap-2">
+           <label class="flex-1 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded cursor-pointer text-center text-sm border border-gray-600 transition">
+              <i class="material-icons text-base align-middle mr-1">camera_alt</i> ถ่ายรูป/เลือกรูป
+              <input type="file" id="si-invoice-img" class="hidden" accept="image/*" onchange="previewInvoice(this)">
+           </label>
+           <div id="img-preview" class="hidden h-10 w-10 bg-cover bg-center rounded border border-gray-500"></div>
+           <span id="img-name" class="text-xs text-gray-500 truncate max-w-[120px]"></span>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1"><span class="font-bold text-gray-200 text-sm">รายการสินค้า</span><button onclick="addStockInRow()" class="bg-amber-500 text-gray-900 px-2 py-1 rounded text-xs font-bold card-tap-effect">+ เพิ่มรายการ</button></div>
+        <div class="flex text-xs text-gray-500 px-2 mb-1"><div class="w-2/5">สินค้า</div><div class="w-1/5 text-center">จำนวน</div><div class="w-1/5 text-center">หน่วย</div><div class="w-1/5 text-center">ราคา</div></div>
+        <div id="stock-in-container" class="space-y-2 max-h-[30vh] overflow-y-auto p-1 bg-gray-800/50 rounded"></div>
+      </div>
+      <div class="bg-gray-700 p-2 rounded text-right"><span class="text-gray-300 text-xs">ยอดรวมทั้งสิ้น:</span><span id="si-grand-total" class="text-amber-400 font-bold text-xl ml-2">0.00</span><span class="text-xs text-gray-400">บาท</span></div>
+    </div>`; 
+
+  Swal.fire({ title: '📥 บันทึกรายจ่าย/รับเข้า', html: html, width: '650px', showCancelButton: true, confirmButtonText: '💾 บันทึก', confirmButtonColor: '#10b981', 
+    didOpen: () => { addStockInRow(); }, 
+    preConfirm: () => { 
+      var supplier = document.getElementById('si-supplier').value;
+      if(!supplier) { Swal.showValidationMessage('กรุณาระบุชื่อร้านค้า'); return false; }
+      
+      var rows = document.querySelectorAll('.stock-in-row'); var validItems = []; var grandTotal = 0;
+      rows.forEach((row) => { 
+        var name = row.querySelector('.si-name').value; var amt = parseFloat(row.querySelector('.si-amt').value); var unitType = row.querySelector('.si-unit').value; 
+        var unitLabel = row.querySelector('.si-unit').options[row.querySelector('.si-unit').selectedIndex].text; var price = parseFloat(row.querySelector('.si-price').value) || 0;
+        if (name && amt > 0) { validItems.push({ name: name, amount: amt, unitType: unitType, unit: unitLabel, price: price }); grandTotal += (amt * price); }
+      }); 
+      if (validItems.length === 0) { Swal.showValidationMessage('กรุณากรอกข้อมูลอย่างน้อย 1 รายการ'); return false; } 
+
+      // อ่านไฟล์รูป (ถ้ามี)
+      var fileInput = document.getElementById('si-invoice-img');
+      var p = Promise.resolve(null);
+      if (fileInput.files.length > 0) {
+        p = new Promise((resolve) => {
+          var reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result); // ส่ง Base64
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+
+      return p.then(imgBase64 => {
+        return { items: validItems, supplier: supplier, grandTotal: grandTotal, invoiceImage: imgBase64 }; 
+      });
+    } 
+  }).then((r) => { 
+    if (r.isConfirmed) { showLoading(true); google.script.run.withSuccessHandler(afterAction).feed_recordBatchStockIn(r.value); } 
+  }); 
+}
+
+function previewInvoice(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var pv = document.getElementById('img-preview');
+      pv.style.backgroundImage = `url('${e.target.result}')`;
+      pv.classList.remove('hidden');
+      document.getElementById('img-name').innerText = input.files[0].name;
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function addStockInRow() { 
+  var c = document.getElementById('stock-in-container'); var opts = '<option value="" disabled selected>-- เลือก --</option>'; 
+  if (appData.stock) { opts += '<optgroup label="วัตถุดิบ">'; appData.stock.forEach(x => opts += `<option value="${x.name}" data-type="mat" class="text-gray-900">${x.name}</option>`); opts += '</optgroup>'; } 
+  if (appData.supplements) { opts += '<optgroup label="ยา/วิตามิน">'; appData.supplements.forEach(x => opts += `<option value="${x.name}" data-type="sup" class="text-gray-900">${x.name}</option>`); opts += '</optgroup>'; } 
+  var div = document.createElement('div'); div.className = 'stock-in-row flex gap-2 items-center bg-gray-900 p-2 rounded border border-gray-700'; 
+  div.innerHTML = `<select class="si-name w-2/5 p-1 border rounded text-xs bg-gray-800 text-gray-200" onchange="updateUnitOptions(this)">${opts}</select><input type="number" class="si-amt w-1/5 p-1 border rounded text-xs text-center bg-gray-800 text-gray-200" placeholder="0" oninput="calculateTotal()"><select class="si-unit w-1/5 p-1 border rounded text-xs bg-gray-800 text-gray-200"><option value="std">-</option></select><input type="number" step="0.01" class="si-price w-1/5 p-1 border rounded text-xs text-right bg-gray-800 text-gray-200 text-amber-300" placeholder="฿0.00" oninput="calculateTotal()"><button onclick="this.parentElement.remove(); calculateTotal();" class="text-red-500 font-bold px-1">×</button>`; 
+  c.appendChild(div); 
+}
+
+window.updateUnitOptions = function(selectElement) { 
+  var row = selectElement.closest('.stock-in-row'); var unitSel = row.querySelector('.si-unit'); var priceInput = row.querySelector('.si-price');
+  var selectedName = selectElement.value; var selectedOption = selectElement.options[selectElement.selectedIndex]; var type = selectedOption.getAttribute('data-type'); 
+  
+  // ✨ Auto-fill Price (ดึงราคาจาก appData.prices มาใส่)
+  var defaultPrice = 0; 
+  if (appData.prices && appData.prices[selectedName]) { defaultPrice = appData.prices[selectedName]; } 
+  priceInput.value = defaultPrice; 
+
+  if (type === 'mat') { unitSel.innerHTML = '<option value="sack">กระสอบ</option>'; } else { unitSel.innerHTML = `<option value="pack">ถุง (คูณน้ำหนัก)</option><option value="kg">กิโลกรัม</option>`; } 
+  calculateTotal();
+}
+
+function calculateTotal() {
+  var rows = document.querySelectorAll('.stock-in-row'); var total = 0;
+  rows.forEach(r => { var amt = parseFloat(r.querySelector('.si-amt').value) || 0; var price = parseFloat(r.querySelector('.si-price').value) || 0; total += (amt * price); });
+  var totalEl = document.getElementById('si-grand-total'); if(totalEl) totalEl.innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function getOptions() { var l=[]; if(appData.stock) appData.stock.forEach(x=>l.push(x.name)); if(appData.supplements) appData.supplements.forEach(x=>l.push(x.name)); return l.map(n=>`<option value="${n}">${n}</option>`).join(''); }
+
+// =======================================================
+// OTHER FUNCTIONS
+// =======================================================
+function openAdjustModal() { const categoryOptions = ADJUST_CATEGORIES.map(c => `<option value="${c.code}">${c.label}</option>`).join(''); Swal.fire({ title: '🛠 ปรับปรุงสต็อก', html: `<select id="s4" class="swal2-input w-full border-gray-300 mb-2">${categoryOptions}</select><select id="s1" class="swal2-input w-full border-gray-300 mb-2">${getOptions()}</select><input id="s2" type="number" class="swal2-input w-full mb-2" placeholder="จำนวน (ใส่ลบเพื่อลดสต็อก)"><input id="s3" type="text" class="swal2-input w-full" placeholder="สาเหตุเพิ่มเติม">`, showCancelButton: true, confirmButtonText: 'บันทึก' , preConfirm: () => { const material = document.getElementById('s1').value; const amount = document.getElementById('s2').value; const reason = document.getElementById('s3').value; const categorySelect = document.getElementById('s4'); const category = categorySelect.options[categorySelect.selectedIndex].text; if (!amount) { Swal.showValidationMessage( 'กรุณาระบุจำนวน' ); return false; } return { material, amount, reason, category }; } }).then((result) => { if (result.isConfirmed) { showLoading(true); google.script.run.withSuccessHandler(afterAction).feed_recordAdjustment(result.value); } }); }
+function openEventModal() { const eventOptions = EVENT_CATEGORIES.map(c => `<option value="${c.code}">${c.label}</option>`).join(''); Swal.fire({ title: '📸 ส่งรูปภาพ', html: `<select id="s3" class="swal2-input w-full border-gray-300 mb-2">${eventOptions}</select><input id="s1" class="swal2-input w-full mb-2" placeholder="บันทึกความจำ"><input type="file" id="s2" class="swal2-file w-full" accept="image/*">`, showCancelButton: true, confirmButtonText: 'ส่ง' , preConfirm: () => { const note = document.getElementById('s1').value; const fileInput = document.getElementById('s2'); if (fileInput.files.length === 0) { Swal.showValidationMessage( 'กรุณาเลือกรูปภาพ' ); return false; } return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = (e) => { const eventSelect = document.getElementById('s3'); const eventType = eventSelect.options[eventSelect.selectedIndex].text; resolve({ note: note, imageFile: e.target.result, eventType: eventType }); }; reader.onerror = (error) => reject(error); reader.readAsDataURL(fileInput.files[0]); }); } }).then((result) => { if (result.isConfirmed) { showLoading(true); google.script.run.withSuccessHandler(() => { showLoading(false); Swal.fire( 'สำเร็จ' , 'ส่งรูปภาพเรียบร้อยแล้ว' , 'success'); }).feed_recordEventWithImage(result.value); } }); }
+function addNewItemModal(type) { Swal.fire({ title: 'เพิ่มรายการ' , html: `<input id="n1" class="swal2-input" placeholder="ชื่อ"><input id="n2" type="number" class="swal2-input" placeholder="คงเหลือเริ่มต้น"><input id="n3" type="password" class="swal2-input" placeholder="รหัสผ่าน (1234)">` , showCancelButton: true }).then(r => { if(r.isConfirmed) { var d = { name: document.getElementById('n1').value, initialStock: document.getElementById('n2').value, minStock:0, unit: 'หน่วย' , pricePerUnit:0, type: 'ทั่วไป' , weightPerUnit:30 }; var pass = document.getElementById('n3').value; showLoading(true); var fn = type==='Mat' ? 'feed_addNewMaterial' : 'feed_addNewSupplement'; google.script.run.withSuccessHandler(res => { showLoading(false); if(res.error) Swal.fire('Error', res.error, 'error'); else { Swal.fire('Success', 'เพิ่มเรียบร้อย' ,'success'); loadAllData(); } })[fn](d, pass); } }); }
+function loadReport() { showLoading(true); google.script.run.withSuccessHandler(data => { showLoading(false); document.getElementById('report-cost').innerText = data.costThisMonth.toLocaleString(); document.getElementById('report-count').innerText = data.totalMixesThisMonth; var hHtml = ''; (data.recentStockIn.concat(data.recentAdjust)).forEach(h => { var color = h.amount > 0 ? 'text-green-400' : 'text-red-400'; hHtml += `<div class="flex justify-between bg-gray-700 p-2 rounded border border-gray-600"><div><span class="text-gray-200">${h.name}</span><div class="text-xs text-gray-500">${h.date}</div></div><div class="font-bold ${color}">${h.amount}</div></div>`; }); document.getElementById('report-history-list').innerHTML = hHtml || '<p class="text-center text-gray-500">ไม่มีรายการ</p>' ; renderCharts(data); }).feed_getFullReportData(); }
+function afterAction(res) { showLoading(false); if(res.error) Swal.fire('Error',res.error,'error'); else { appData=res; renderStock(); Swal.fire('Success','','success'); } }
+function renderCharts(data) { if(chartInstance1) chartInstance1.destroy(); var ctx1 = document.getElementById('chart-mat').getContext('2d'); chartInstance1 = new Chart(ctx1, { type: 'doughnut', data: { labels: data.chartMat.map(x=>x.label), datasets: [{ data: data.chartMat.map(x=>x.value), backgroundColor: ['#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#6b7280'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#d1d5db' } } } } }); if(chartInstance2) chartInstance2.destroy(); var ctx2 = document.getElementById('chart-formula').getContext('2d'); chartInstance2 = new Chart(ctx2, { type: 'bar', data: { labels: data.chartFormula.map(x=>x.label), datasets: [{ label: 'ยอดใช้จ่าย (บาท)' , data: data.chartFormula.map(x=>x.value), backgroundColor: '#f59e0b', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: '#4a5568' }, ticks: { color: '#d1d5db' } }, y: { grid: { color: '#4a5568' }, ticks: { color: '#d1d5db' } } }, plugins: { legend: { labels: { color: '#d1d5db' } } } } }); }
+</script>
+</body>
+</html>
